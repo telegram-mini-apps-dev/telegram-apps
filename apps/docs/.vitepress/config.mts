@@ -7,6 +7,7 @@ import { platformNavItem, platformSidebar } from './platform';
 export default defineConfig({
   title: 'Telegram Mini Apps',
   description: 'Documentation covering all aspects of Telegram platform - Telegram Mini Apps.',
+  base: '/docs/',
 
   // Internationalization.
   // https://vitepress.dev/guide/i18n
