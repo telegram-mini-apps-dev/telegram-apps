@@ -3,11 +3,28 @@ import { defineConfig } from 'vitepress';
 import { packagesNavItem, packagesSidebar } from './packages';
 import { platformNavItem, platformSidebar } from './platform';
 
+function withSlashes(value: string | undefined): string {
+  if (!value) {
+    return '/';
+  }
+  if (!value.startsWith('/')) {
+    value = '/' + value;
+  }
+  if (!value.endsWith('/')) {
+    value += '/';
+  }
+  return value;
+}
+
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: 'Telegram Mini Apps',
   description: 'Documentation covering all aspects of Telegram platform - Telegram Mini Apps.',
   base: '/docs/',
+
+  // The base URL the site will be deployed at.
+  // https://vitepress.dev/reference/site-config#base
+  base: withSlashes(process.env.DOCS_BASE_URL),
 
   // Internationalization.
   // https://vitepress.dev/guide/i18n
@@ -76,7 +93,7 @@ export default defineConfig({
     }],
 
     search: {
-      provider: 'local'
+      provider: 'local',
     },
 
     // search: {

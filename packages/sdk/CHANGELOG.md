@@ -1,5 +1,34 @@
 # @tma.js/sdk
 
+## 2.7.0
+
+### Minor Changes
+
+- 150cc8e: - Remove Mini Apps events parsers we don't really need now.
+  - Make `createPostEvent` result function not check some safe Mini Apps methods parameters.
+  - Rework the `request` function and fix a bug related to incorrect multiple events handling.
+  - Add `MiniApp.close` `returnBack` argument.
+  - Fix invalid URL in generation in `Utils.shareURL`
+  - Add `Utils.openLink` `tryBrowser` parameter.
+
+## 2.6.1
+
+### Patch Changes
+
+- 9173cad: Fix invalid QR scanner behavior related to the invalid isOpened property updates.
+
+## 2.6.0
+
+### Minor Changes
+
+- 3539c19: Add new 7.6 methods parameters and theme color.
+
+## 2.5.1
+
+### Patch Changes
+
+- 36d432b: Update the link, used in the `Utils.shareURL` method.
+
 ## 2.5.0
 
 ### Minor Changes

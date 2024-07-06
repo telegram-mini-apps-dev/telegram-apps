@@ -1,6 +1,6 @@
 {
   "name": "@tma.js/solid-router-integration",
-  "version": "5.0.2",
+  "version": "7.0.0",
   "description": "@solidjs/router integration for navigation.",
   "author": "Vladislav Kibenko <wolfram.deus@gmail.com>",
   "homepage": "https://github.com/Telegram-Mini-Apps/tma.js#readme",
@@ -43,7 +43,7 @@
   },
   "peerDependencies": {
     "@solidjs/router": "^0.13.1",
-    "@tma.js/sdk": "workspace:^2",
+    "@tma.js/sdk": "workspace:^",
     "solid-js": "^1.8.16"
   },
   "devDependencies": {

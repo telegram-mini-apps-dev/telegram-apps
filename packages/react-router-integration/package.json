@@ -1,6 +1,6 @@
 {
   "name": "@tma.js/react-router-integration",
-  "version": "4.0.2",
+  "version": "6.0.0",
   "description": "Navigator integration for the react-router-dom package.",
   "author": "Vladislav Kibenko <wolfram.deus@gmail.com>",
   "homepage": "https://github.com/Telegram-Mini-Apps/tma.js#readme",
@@ -43,7 +43,7 @@
     "build": "vite build"
   },
   "peerDependencies": {
-    "@tma.js/sdk": "workspace:^2",
+    "@tma.js/sdk": "workspace:^",
     "@types/react": "^17.0.0 || ^18.0.0",
     "react": "^17.0.0 || ^18.0.0",
     "react-router-dom": "^6.22.3"

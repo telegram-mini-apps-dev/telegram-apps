@@ -1,5 +1,43 @@
 # @tma.js/init-data-node
 
+## 1.4.0
+
+### Minor Changes
+
+- 24847f3: Allow using a hashed token in the package methods.
+
+### Patch Changes
+
+- Updated dependencies [150cc8e]
+  - @tma.js/sdk@2.7.0
+
+## 1.3.2
+
+### Patch Changes
+
+- Updated dependencies [9173cad]
+  - @tma.js/sdk@2.6.1
+
+## 1.3.1
+
+### Patch Changes
+
+- Updated dependencies [3539c19]
+  - @tma.js/sdk@2.6.0
+
+## 1.3.0
+
+### Minor Changes
+
+- 04e5a6f: Add Web crypto API.
+
+## 1.2.8
+
+### Patch Changes
+
+- Updated dependencies [36d432b]
+  - @tma.js/sdk@2.5.1
+
 ## 1.2.7
 
 ### Patch Changes
