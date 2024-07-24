@@ -69,6 +69,7 @@ export class MiniApp extends WithSupportsAndTrackableState<
 
     this.supportsParam = createSupportsParamFn(version, {
       'setHeaderColor.color': ['web_app_set_header_color', 'color'],
+      'close.returnBack': ['web_app_close', 'return_back'],
     });
   }
 
@@ -102,7 +103,9 @@ export class MiniApp extends WithSupportsAndTrackableState<
    * @param returnBack - should the application be wrapped into the bottom bar.
    */
   close(returnBack?: boolean): void {
-    this.postEvent('web_app_close', { return_back: returnBack });
+    this.postEvent('web_app_close', this.supportsParam('close.returnBack')
+      ? { return_back: returnBack }
+      : {});
   }
 
   /**
@@ -172,7 +175,8 @@ export class MiniApp extends WithSupportsAndTrackableState<
       while (Date.now() < deadlineAt) {
         try {
           return await this.getRequestedContact();
-        } catch {}
+        } catch {
+        }
 
         // Sleep for some time.
         await sleep(sleepTime);
@@ -246,8 +250,8 @@ export class MiniApp extends WithSupportsAndTrackableState<
   /**
    * Updates current Mini App header color.
    *
-   * @see No effect on desktop: https://github.com/Telegram-Mini-Apps/tma.js/issues/9
-   * @see Works incorrectly in Android: https://github.com/Telegram-Mini-Apps/tma.js/issues/8
+   * @see No effect on desktop: https://github.com/Telegram-Mini-Apps/telegram-apps/issues/9
+   * @see Works incorrectly in Android: https://github.com/Telegram-Mini-Apps/telegram-apps/issues/8
    * @param color - color key or RGB color.
    */
   setHeaderColor(color: MiniAppHeaderColor): void {
@@ -258,8 +262,8 @@ export class MiniApp extends WithSupportsAndTrackableState<
   /**
    * Updates current Mini App background color.
    *
-   * @see No effect on desktop: https://github.com/Telegram-Mini-Apps/tma.js/issues/9
-   * @see Works incorrectly in Android: https://github.com/Telegram-Mini-Apps/tma.js/issues/8
+   * @see No effect on desktop: https://github.com/Telegram-Mini-Apps/telegram-apps/issues/9
+   * @see Works incorrectly in Android: https://github.com/Telegram-Mini-Apps/telegram-apps/issues/8
    * @param color - RGB color.
    */
   setBgColor(color: RGB): void {
@@ -270,7 +274,7 @@ export class MiniApp extends WithSupportsAndTrackableState<
   /**
    * Checks if specified method parameter is supported by current component.
    */
-  supportsParam: SupportsFn<'setHeaderColor.color'>;
+  supportsParam: SupportsFn<'setHeaderColor.color' | 'close.returnBack'>;
 
   /**
    * Inserts the bot's username and the specified inline query in the current chat's input field.

@@ -336,6 +336,14 @@ export interface MiniAppsMethods {
     is_visible: boolean;
   }>;
   /**
+   * Changes swipe behavior.
+   * @see https://docs.telegram-mini-apps.com/platform/methods#web-app-setup-swipe-behavior
+   * @since v7.7
+   */
+  web_app_setup_swipe_behavior: CreateParams<{
+    allow_vertical_swipe: boolean;
+  }>;
+  /**
    * Inserts the bot's username and the specified inline query in the current chat's input field.
    * Query may be empty, in which case only the bot's username will be inserted. The client prompts
    * the user to choose a specific chat, then opens that chat and inserts the bot's username and
@@ -400,7 +408,7 @@ export type MiniAppsMethodWithRequiredParams = Exclude<
  * Method names which have versioned params.
  */
 export type MiniAppsMethodWithVersionedParams = {
-  [M in MiniAppsMethodName]: IsNever<MiniAppsMethods[M]['versionedParams']> extends true ? never : M;
+  [M in MiniAppsMethodName]: If<IsNever<MiniAppsMethods[M]['versionedParams']>, never, M>;
 }[MiniAppsMethodName];
 
 /**

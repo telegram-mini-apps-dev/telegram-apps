@@ -1,4 +1,4 @@
-export * from '@tma.js/sdk';
+export * from '@telegram-apps/sdk';
 export * from './hooks-hocs/back-button.js';
 export * from './hooks-hocs/biometry-manager.js';
 export * from './hooks-hocs/closing-behavior.js';
@@ -11,6 +11,7 @@ export * from './hooks-hocs/mini-app.js';
 export * from './hooks-hocs/popup.js';
 export * from './hooks-hocs/qr-scanner.js';
 export * from './hooks-hocs/settings-button.js';
+export * from './hooks-hocs/swipe-behavior.js';
 export * from './hooks-hocs/theme-params.js';
 export { useLaunchParams } from './hooks-hocs/launch-params.js';
 export * from './hooks-hocs/utils.js';

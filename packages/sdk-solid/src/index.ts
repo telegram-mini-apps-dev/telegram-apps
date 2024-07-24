@@ -10,6 +10,7 @@ export { useMiniApp, withMiniApp } from './hooks-hocs/mini-app.js';
 export { usePopup, withPopup } from './hooks-hocs/popup.js';
 export { useQRScanner, withQRScanner } from './hooks-hocs/qr-scanner.js';
 export { useSettingsButton, withSettingsButton } from './hooks-hocs/settings-button.js';
+export { useSwipeBehavior, withSwipeBehavior } from './hooks-hocs/swipe-behavior.js';
 export { useThemeParams, withThemeParams } from './hooks-hocs/theme-params.js';
 export { useUtils, withUtils } from './hooks-hocs/utils.js';
 export { useViewport, withViewport } from './hooks-hocs/viewport.js';
@@ -21,4 +22,4 @@ export type {
   SDKContextItem,
   FactorySignal,
 } from './SDKProvider/SDKProvider.types.js';
-export * from '@tma.js/sdk';
+export * from '@telegram-apps/sdk';

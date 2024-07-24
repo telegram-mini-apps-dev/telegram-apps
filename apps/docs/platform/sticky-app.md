@@ -1,5 +1,15 @@
 # Sticky App
 
+::: tip
+
+Starting from the Mini Apps version **7.7**, you are able to prevent the application from
+closing due to swipe down by using a special method. 
+
+- [Mini Apps method](methods.md#web-app-setup-swipe-behavior)
+- [@telegram-apps/sdk component](../packages/telegram-apps-sdk/components/swipe-behavior.md)
+
+:::
+
 Developers often seek ways to make their applications "sticky." In this context, "sticky" refers to
 preventing the application from being closed accidentally, such as by a swipe-down gesture.
 
@@ -64,10 +74,10 @@ Here is the HTML and CSS you can use:
       My application goes here.
     </div>
   </div>
-  <script src="https://unpkg.com/@tma.js/sdk@2.5.0/dist/index.iife.js"></script>
+  <script src="https://unpkg.com/@telegram-apps/sdk@1.0.0/dist/index.iife.js"></script>
   <script>
     (function() {
-      var { retrieveLaunchParams, postEvent } = window.tmajs.sdk;
+      var { retrieveLaunchParams, postEvent } = window.telegramApps.sdk;
       var lp = retrieveLaunchParams();
 
       // Some versions of Telegram don't need the classes above.

@@ -9,7 +9,7 @@ by a Mini App.
 
 ## Web
 
-As long as the web version of Telegram displays the front-end application in `<iframe/>` tag, it
+Since the web version of Telegram displays the front-end application in an `<iframe/>` tag, it
 uses the default way of communication between 2 iframes - sending messages
 through `window.parent.postMessage` function.
 
@@ -79,19 +79,20 @@ window.external.notify(data);
 ## Calling Methods
 
 Handling all possible environments for a developer's application can be challenging. To simplify
-this process, the community developed the [@tma.js/sdk](../packages/tma-js-sdk) package, which
+this process, the community developed the [@telegram-apps/sdk](../packages/telegram-apps-sdk)
+package, which
 greatly eases integration.
 
 Here's how to use it:
 
 ```ts
-import { postEvent } from '@tma.js/sdk';
+import { postEvent } from '@telegram-apps/sdk';
 
 postEvent('web_app_set_header_color', { color_key: 'bg_color' });
 ```
 
 You can learn more about calling methods in the
-package's [documentation](../packages/tma-js-sdk/methods-and-events#calling-methods).
+package's [documentation](../packages/telegram-apps-sdk/methods-and-events#calling-methods).
 
 ## Available Methods
 
@@ -462,6 +463,16 @@ Updates current state of [Settings Button](settings-button.md).
 | Field      | Type      | Description                              |
 |------------|-----------|------------------------------------------|
 | is_visible | `boolean` | Should the Settings Button be displayed. |
+
+### `web_app_setup_swipe_behavior`
+
+Available since: **v7.7**
+
+Sets new swipe behavior.
+
+| Field                | Type      | Description                                          |
+|----------------------|-----------|------------------------------------------------------|
+| allow_vertical_swipe | `boolean` | Allows closing the application using vertical swipe. |
 
 ### `web_app_switch_inline_query`
 

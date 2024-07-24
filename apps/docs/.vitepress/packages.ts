@@ -6,7 +6,7 @@ const section = sectionGen(PREFIX);
 
 export const packagesNavItem = {
   text: 'Packages',
-  link: `${PREFIX}/tma-js-sdk`,
+  link: `${PREFIX}/telegram-apps-sdk`,
 };
 
 export const packagesSidebar = {
@@ -15,8 +15,8 @@ export const packagesSidebar = {
       '@telegram-apps/create-mini-app': 'telegram-apps-create-mini-app',
     }),
     section('TypeScript', {
-      '@tma.js/sdk': [
-        'tma-js-sdk',
+      '@telegram-apps/sdk': [
+        'telegram-apps-sdk',
         {
           'Components': [
             'components',
@@ -33,6 +33,7 @@ export const packagesSidebar = {
               Popup: 'popup',
               QRScanner: 'qr-scanner',
               SettingsButton: 'settings-button',
+              SwipeBehavior: 'swipe-behavior',
               ThemeParams: 'theme-params',
               Utils: 'utils',
               Viewport: 'viewport',
@@ -62,13 +63,13 @@ export const packagesSidebar = {
           'CSS Variables': 'css-variables',
         },
       ],
-      '@tma.js/sdk-react': '/tma-js-sdk-react',
-      '@tma.js/sdk-solid': '/tma-js-sdk-solid',
-      '@tma.js/solid-router-integration': '/tma-js-solid-router-integration',
-      '@tma.js/react-router-integration': '/tma-js-react-router-integration',
+      '@telegram-apps/sdk-react': '/telegram-apps-sdk-react',
+      '@telegram-apps/sdk-solid': '/telegram-apps-sdk-solid',
+      '@telegram-apps/solid-router-integration': '/telegram-apps-solid-router-integration',
+      '@telegram-apps/react-router-integration': '/telegram-apps-react-router-integration',
     }),
     section('Node', {
-      '@tma.js/init-data-node': 'tma-js-init-data-node',
+      '@telegram-apps/init-data-node': 'telegram-apps-init-data-node',
     }),
     section('GoLang', {
       'init-data-golang': 'init-data-golang',
