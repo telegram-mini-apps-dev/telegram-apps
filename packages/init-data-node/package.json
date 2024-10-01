@@ -1,6 +1,6 @@
 {
   "name": "@telegram-apps/init-data-node",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "TypeScript Node library to operate with Telegram init data.",
   "author": "Vladislav Kibenko <wolfram.deus@gmail.com>",
   "homepage": "https://github.com/Telegram-Mini-Apps/telegram-apps#readme",
@@ -22,7 +22,9 @@
   "type": "module",
   "sideEffects": false,
   "files": [
-    "dist"
+    "dist",
+    "src",
+    "tsconfig.json"
   ],
   "main": "./dist/entries/node.cjs",
   "module": "./dist/entries/node.js",
@@ -52,12 +54,15 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "tsconfig": "workspace:*"
+    "tsconfig": "workspace:*",
+    "test-utils": "workspace:*"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@telegram-apps/sdk": "workspace:^"
+    "@telegram-apps/toolkit": "workspace:^",
+    "@telegram-apps/types": "workspace:^",
+    "@telegram-apps/transformers": "workspace:^"
   }
 }
