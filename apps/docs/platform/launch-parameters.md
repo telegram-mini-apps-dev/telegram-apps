@@ -13,7 +13,7 @@ the Telegram client environment sending data to the Mini App through the URL's h
 the Mini App to access essential information upon launch.
 
 The native Telegram application transmits a list of these parameters in the dynamic part of the URL 
-(in the hash #). To access these parameters, you need to use the window.location.hash property in your JavaScript code.
+(in the hash #). To access these parameters, you need to use the `window.location.hash` property in your JavaScript code.
 
 ## Extraction
 
@@ -96,3 +96,8 @@ as [web_app_switch_inline_query](methods.md#web-app-switch-inline-query).
 
 Parameter that contains a custom string value passed in the bot or application
 link. [Learn more](start-parameter.md).
+
+### `tgWebAppFullscreen`
+
+Parameter indicating if the application is currently launched in the fullscreen mode.
+

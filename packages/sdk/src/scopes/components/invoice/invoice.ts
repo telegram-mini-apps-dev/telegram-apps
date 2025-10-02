@@ -1,75 +1,69 @@
-import {
-  TypedError,
-  supports,
-  type ExecuteWithOptions,
-  type InvoiceStatus,
-  type ExecuteWithPostEvent,
-} from '@telegram-apps/bridge';
-import { signal } from '@telegram-apps/signals';
+import type { InvoiceStatus } from '@telegram-apps/bridge';
+import type { AbortablePromise } from 'better-promises';
 
-import { $version, request } from '@/scopes/globals.js';
-import { ERR_INVALID_HOSTNAME, ERR_INVALID_SLUG, ERR_ALREADY_CALLED } from '@/errors.js';
+import { request } from '@/globals.js';
+import { createWrapSupported } from '@/scopes/wrappers/createWrapSupported.js';
+import { InvalidArgumentsError } from '@/errors.js';
+import { defineNonConcurrentFn } from '@/scopes/defineNonConcurrentFn.js';
+import { createIsSupported } from '@/scopes/createIsSupported.js';
+import type { RequestOptionsNoCapture } from '@/types.js';
 
-const MINI_APPS_METHOD = 'web_app_open_invoice';
-
-/**
- * True if the invoice is currently opened.
- */
-export const isOpened = signal(false);
+const METHOD_NAME = 'web_app_open_invoice';
+const wrapSupported = createWrapSupported('invoice', METHOD_NAME);
 
 /**
- * @returns True if the invoice is supported.
+ * Signal indicating if invoices are supported.
  */
-export function isSupported(): boolean {
-  return supports(MINI_APPS_METHOD, $version());
-}
+export const isSupported = createIsSupported(METHOD_NAME);
 
 /**
  * Opens an invoice using its slug.
- * Example of the value: `jd231xxSd1`
  * @param slug - invoice slug.
  * @param options - additional options.
- * @throws {TypedError} ERR_ALREADY_CALLED
- * @throws {TypedError} ERR_INVALID_HOSTNAME
- * @throws {TypedError} ERR_INVALID_SLUG
+ * @since Mini Apps v6.1
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @throws {FunctionNotAvailableError} The function is not supported
+ * @throws {InvalidArgumentsError} An invoice is already opened
+ * @example
+ * if (open.isAvailable()) {
+ *   const status = await open('kJNFS331');
+ * }
  */
-export function open(slug: string, options?: ExecuteWithPostEvent): Promise<InvoiceStatus>;
+function _open(slug: string, options?: RequestOptionsNoCapture): AbortablePromise<InvoiceStatus>;
 
 /**
  * Opens an invoice using its url.
- *
- * The function expects to pass a link in a full format, with the hostname "t.me".
- * Examples:
- * - `https://t.me/$jd231xxSd1`
- * - `https://t.me/invoice/jd231xxSd1`
  * @param url - invoice URL.
  * @param type - value type.
  * @param options - additional options.
- * @throws {TypedError} ERR_ALREADY_CALLED
- * @throws {TypedError} ERR_INVALID_HOSTNAME
- * @throws {TypedError} ERR_INVALID_SLUG
+ * @since Mini Apps v6.1
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @throws {FunctionNotAvailableError} The function is not supported
+ * @throws {InvalidArgumentsError} An invoice is already opened
+ * @throws {InvalidArgumentsError} Link has unexpected hostname
+ * @example
+ * if (open.isAvailable()) {
+ *   const status = await open('https://t.me/$kJNFS331', 'url');
+ * }
+ * @example
+ * if (open.isAvailable()) {
+ *   const status = await open('https://t.me/invoice/kJNFS331', 'url');
+ * }
  */
-export function open(
-  url: string,
-  type: 'url',
-  options?: ExecuteWithPostEvent,
-): Promise<InvoiceStatus>;
+function _open(url: string, type: 'url', options?: RequestOptionsNoCapture): AbortablePromise<InvoiceStatus>;
 
-export async function open(
+function _open(
   urlOrSlug: string,
-  optionsOrType?: 'url' | ExecuteWithOptions,
-  options?: ExecuteWithOptions,
-): Promise<InvoiceStatus> {
-  if (isOpened()) {
-    throw new TypedError(ERR_ALREADY_CALLED);
-  }
-
+  optionsOrType?: 'url' | RequestOptionsNoCapture,
+  options?: RequestOptionsNoCapture,
+): AbortablePromise<InvoiceStatus> {
   let slug: string;
-
   if (optionsOrType === 'url') {
     const { hostname, pathname } = new URL(urlOrSlug, window.location.href);
     if (hostname !== 't.me') {
-      throw new TypedError(ERR_INVALID_HOSTNAME);
+      throw new InvalidArgumentsError(`Link has unexpected hostname: ${hostname}`);
     }
 
     // Valid examples:
@@ -77,23 +71,31 @@ export async function open(
     // "/$my-slug"
     const match = pathname.match(/^\/(\$|invoice\/)([A-Za-z0-9\-_=]+)$/);
     if (!match) {
-      throw new TypedError(ERR_INVALID_SLUG);
+      throw new InvalidArgumentsError(
+        `Expected to receive a link with a pathname in format "/invoice/{slug}" or "/\${slug}"`,
+      );
     }
     [, , slug] = match;
   } else {
+    // todo: validate slug?
     slug = urlOrSlug;
     options = optionsOrType;
   }
 
-  isOpened.set(true);
-
-  return request(MINI_APPS_METHOD, 'invoice_closed', {
+  return request(METHOD_NAME, 'invoice_closed', {
     ...options,
     params: { slug },
     capture: (data) => slug === data.slug,
   })
-    .then(r => r.status)
-    .finally(() => {
-      isOpened.set(false);
-    });
+    .then(d => d.status);
 }
+
+const [
+  fn,
+  tOpenPromise,
+  tOpenError,
+] = defineNonConcurrentFn(_open, 'Invoice is already opened');
+
+export const open = wrapSupported('open', fn);
+export const [, openPromise, isOpened] = tOpenPromise;
+export const [, openError] = tOpenError;

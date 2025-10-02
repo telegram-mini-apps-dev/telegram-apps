@@ -1,5 +1,8 @@
 # @telegram-apps/bridge
 
+> [!TIP] Newer version available
+> `@telegram-apps/bridge@2.x` is [out](./telegram-apps-bridge/2-x)!
+
 <p style="display: flex; gap: 8px; min-height: 20px">
   <a href="https://npmjs.com/package/@telegram-apps/bridge">
     <img src="https://img.shields.io/npm/v/@telegram-apps/bridge?logo=npm"/>

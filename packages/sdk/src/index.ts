@@ -1,354 +1,178 @@
-export { classNames } from '@/classnames/classNames.js';
-export { mergeClassNames, type MergeClassNames } from '@/classnames/mergeClassNames.js';
-
-export * as backButton from '@/scopes/components/back-button/back-button.js';
-export {
-  hide as hideBackButton,
-  isVisible as isBackButtonVisible,
-  isMounted as isBackButtonMounted,
-  isSupported as isBackButtonSupported,
-  mount as mountBackButton,
-  onClick as onBackButtonClick,
-  offClick as offBackButtonClick,
-  show as showBackButton,
-  unmount as unmountBackButton,
-} from '@/scopes/components/back-button/back-button.js';
-
-export * as biometry from '@/scopes/components/biometry/instance.js';
-export {
-  authenticate as authenticateBiometry,
-  isMounting as isBiometryMounting,
-  isMounted as isBiometryMounted,
-  isSupported as isBiometrySupported,
-  mount as mountBiometry,
-  mountError as biometryMountError,
-  openSettings as openBiometrySettings,
-  requestAccess as requestBiometryAccess,
-  state as biometryState,
-  unmount as unmountBiometry,
-  updateToken as updateBiometryToken,
-  isAuthenticating as isAuthenticatingBiometry,
-  isRequestingAccess as isRequestingBiometryAccess,
-} from '@/scopes/components/biometry/instance.js';
-export * as Biometry from '@/scopes/components/biometry/static.js';
-
-export * as closingBehavior from '@/scopes/components/closing-behavior/closing-behavior.js';
-export {
-  disableConfirmation as disableClosingConfirmation,
-  enableConfirmation as enableClosingConfirmation,
-  isMounted as isClosingBehaviorMounted,
-  isConfirmationEnabled as isClosingConfirmationEnabled,
-  mount as mountClosingBehavior,
-  unmount as unmountClosingBehavior,
-} from '@/scopes/components/closing-behavior/closing-behavior.js';
-
-export * as cloudStorage from '@/scopes/components/cloud-storage/cloud-storage.js';
-export {
-  isSupported as isCloudStorageSupported,
-  getItem as getCloudStorageItem,
-  setItem as setCloudStorageItem,
-  deleteItem as deleteCloudStorageItem,
-  getKeys as getCloudStorageKeys,
-} from '@/scopes/components/cloud-storage/cloud-storage.js';
-
-export * as hapticFeedback from '@/scopes/components/haptic-feedback/haptic-feedback.js';
-export {
-  impactOccurred as hapticFeedbackImpactOccurred,
-  isSupported as isHapticFeedbackSupported,
-  notificationOccurred as hapticFeedbackNotificationOccurred,
-  selectionChanged as hapticFeedbackSelectionChanged,
-} from '@/scopes/components/haptic-feedback/haptic-feedback.js';
-
-export * as initData from '@/scopes/components/init-data/instance.js';
-export {
-  state as initDataState,
-  raw as initDataRaw,
-  authDate as initDataAuthDate,
-  chat as initDataChat,
-  chatInstance as initDataChatInstance,
-  chatType as initDataChatType,
-  hash as initDataHash,
-  canSendAfter as initDataCanSendAfter,
-  canSendAfterDate as initDataCanSendAfterDate,
-  queryId as initDataQueryId,
-  restore as restoreInitData,
-  user as initDataUser,
-  receiver as initDataReceiver,
-  startParam as initDataStartParam,
-} from '@/scopes/components/init-data/instance.js';
-export * as InitData from '@/scopes/components/init-data/static.js';
-
-export * as invoice from '@/scopes/components/invoice/invoice.js';
-export {
-  isSupported as isInvoiceSupported,
-  isOpened as isInvoiceOpened,
-  open as openInvoice,
-} from '@/scopes/components/invoice/invoice.js';
-
-export * as mainButton from '@/scopes/components/main-button/instance.js';
-export {
-  backgroundColor as mainButtonBackgroundColor,
-  isMounted as isMainButtonMounted,
-  isVisible as isMainButtonVisible,
-  isEnabled as isMainButtonEnabled,
-  isLoaderVisible as isMainButtonLoaderVisible,
-  mount as mountMainButton,
-  onClick as onMainButtonClick,
-  offClick as offMainButtonClick,
-  setParams as setMainButtonParams,
-  state as mainButtonState,
-  textColor as mainButtonTextColor,
-  text as mainButtonText,
-  unmount as unmountMainButton,
-} from '@/scopes/components/main-button/instance.js';
-export * as MainButton from '@/scopes/components/main-button/static.js';
-
-export * as miniApp from '@/scopes/components/mini-app/instance.js';
-export {
-  backgroundColor as miniAppBackgroundColor,
-  bindCssVars as bindMiniAppCssVars,
-  close as closeMiniApp,
-  headerColor as miniAppHeaderColor,
-  isMounted as isMiniAppMounted,
-  isCssVarsBound as isMiniAppCssVarsBound,
-  isDark as isMiniAppDark,
-  mount as mountMiniApp,
-  ready as miniAppReady,
-  state as miniAppState,
-  setHeaderColor as setMiniAppHeaderColor,
-  setBackgroundColor as setMiniAppBackgroundColor,
-  unmount as unmountMiniApp,
-} from '@/scopes/components/mini-app/instance.js';
-export * as MiniApp from '@/scopes/components/main-button/static.js';
-
-export * as popup from '@/scopes/components/popup/instance.js';
-export {
-  isOpened as isPopupOpened,
-  isSupported as isPopupSupported,
-  open as openPopup,
-} from '@/scopes/components/popup/instance.js';
-export * as Popup from '@/scopes/components/popup/static.js';
-
-export * as qrScanner from '@/scopes/components/qr-scanner/qr-scanner.js';
-export {
-  close as closeQrScanner,
-  isSupported as isQrScannerSupported,
-  isOpened as isQrScannerOpened,
-  open as openQrScanner,
-} from '@/scopes/components/qr-scanner/qr-scanner.js';
-
-export * as settingsButton from '@/scopes/components/settings-button/settings-button.js';
-export {
-  hide as hideSettingsButton,
-  isVisible as isSettingsButtonVisible,
-  isMounted as isSettingsButtonMounted,
-  isSupported as isSettingsButtonSupported,
-  mount as mountSettingsButton,
-  onClick as onSettingsButtonClick,
-  offClick as offSettingsButtonClick,
-  show as showSettingsButton,
-  unmount as unmountSettingsButton,
-} from '@/scopes/components/settings-button/settings-button.js';
-
-export * as swipeBehavior from '@/scopes/components/swipe-behavior/swipe-behavior.js';
-export {
-  disableVertical as disableVerticalSwipes,
-  enableVertical as enableVerticalSwipes,
-  isMounted as isSwipeBehaviorMounted,
-  isVerticalEnabled as isVerticalSwipesEnabled,
-  isSupported as isSwipeBehaviorSupported,
-  mount as mountSwipeBehavior,
-  unmount as unmountSwipeBehavior,
-} from '@/scopes/components/swipe-behavior/swipe-behavior.js';
-
-export * as themeParams from '@/scopes/components/theme-params/instance.js';
-export {
-  accentTextColor as themeParamsAccentTextColor,
-  backgroundColor as themeParamsBackgroundColor,
-  bindCssVars as bindThemeParamsCssVars,
-  buttonTextColor as themeParamsButtonTextColor,
-  buttonColor as themeParamsButtonColor,
-  destructiveTextColor as themeParamsDestructiveTextColor,
-  headerBackgroundColor as themeParamsHeaderBackgroundColor,
-  hintColor as themeParamsHintColor,
-  isMounted as isThemeParamsMounted,
-  isDark as isThemeParamsDark,
-  isCssVarsBound as isThemeParamsCssVarsBound,
-  linkColor as themeParamsLinkColor,
-  mount as mountThemeParams,
-  state as themeParamsState,
-  subtitleTextColor as themeParamsSubtitleTextColor,
-  sectionBackgroundColor as themeParamsSectionBackgroundColor,
-  secondaryBackgroundColor as themeParamsSecondaryBackgroundColor,
-  sectionSeparatorColor as themeParamsSectionSeparatorColor,
-  sectionHeaderTextColor as themeParamsSectionHeaderTextColor,
-  textColor as themeParamsTextColor,
-  unmount as unmountThemeParams,
-} from '@/scopes/components/theme-params/instance.js';
-export * as ThemeParams from '@/scopes/components/theme-params/static.js';
-
-export * as viewport from '@/scopes/components/viewport/instance.js';
-export {
-  bindCssVars as bindViewportCssVars,
-  expand as expandViewport,
-  height as viewportHeight,
-  isExpanded as isViewportExpanded,
-  isStable as isViewportStable,
-  isCssVarsBound as isViewportCssVarsBound,
-  isMounting as isViewportMounting,
-  isMounted as isViewportMounted,
-  mount as mountViewport,
-  mountError as viewportMountError,
-  state as viewportState,
-  stableHeight as viewportStableHeight,
-  unmount as unmountViewport,
-  width as viewportWidth,
-} from '@/scopes/components/viewport/instance.js';
-export * as Viewport from '@/scopes/components/viewport/static.js';
+export * from '@/scopes/components/back-button/exports.js';
+export * from '@/scopes/components/biometry/exports.js';
+export * from '@/scopes/components/closing-behavior/exports.js';
+export * from '@/scopes/components/cloud-storage/exports.js';
+export * from '@/scopes/components/haptic-feedback/exports.js';
+export * from '@/scopes/components/init-data/exports.js';
+export * from '@/scopes/components/invoice/exports.js';
+export * from '@/scopes/components/location-manager/exports.js';
+export * from '@/scopes/components/main-button/exports.js';
+export * from '@/scopes/components/mini-app/exports.js';
+export * from '@/scopes/components/popup/exports.js';
+export * from '@/scopes/components/qr-scanner/exports.js';
+export * from '@/scopes/components/secondary-button/exports.js';
+export * from '@/scopes/components/settings-button/exports.js';
+export * from '@/scopes/components/swipe-behavior/exports.js';
+export * from '@/scopes/components/theme-params/exports.js';
+export * from '@/scopes/components/viewport/exports.js';
+export * from '@/scopes/utilities/emoji-status/exports.js';
+export * from '@/scopes/utilities/home-screen/exports.js';
+export * from '@/scopes/utilities/links/exports.js';
+export * from '@/scopes/utilities/privacy/exports.js';
+export * from '@/scopes/utilities/uncategorized/exports.js';
 
 export {
-  openLink,
-  openTelegramLink,
-  shareURL,
-  type OpenLinkOptions,
-} from '@/scopes/utilities/links/links.js';
-export {
-  requestPhoneAccess,
-  requestWriteAccess,
-  requestContact,
-  type RequestedContact,
-} from '@/scopes/utilities/privacy/privacy.js';
-export {
-  readTextFromClipboard,
-  sendData,
-  switchInlineQuery,
-} from '@/scopes/utilities/uncategorized/uncategorized.js';
+  wrapSafe,
+  type WrapSafeOptions,
+  type Supports,
+  type SafeWrapped,
+  type CustomSupportValidatorFn,
+  type IsSupportedType,
+  type IfAvailableFnResult,
+} from '@/scopes/wrappers/wrapSafe.js';
 
-export {
-  $postEvent,
-  $version,
-  $createRequestId,
-} from '@/scopes/globals.js';
-
+export { ignoreCanceled } from '@/utils/ignoreCanceled.js';
 export { isColorDark } from '@/utils/isColorDark.js';
 export { isSSR } from '@/utils/isSSR.js';
+export { safeCall } from '@/utils/safeCall.js';
+
+export { setDebug } from '@/debug.js';
+export * from '@/errors.js';
 export {
-  ERR_POPUP_INVALID_PARAMS,
-  ERR_INVALID_HOSTNAME,
-  ERR_INVALID_SLUG,
-  ERR_ACCESS_DENIED,
-  ERR_DATA_INVALID_SIZE,
-  ERR_NOT_AVAILABLE,
-  ERR_ALREADY_CALLED,
-} from '@/errors.js';
+  invokeCustomMethod,
+  postEvent,
+  createRequestId,
+  configure,
+  request,
+  type ConfigureOptions,
+} from '@/globals.js';
 export { init, type InitOptions } from '@/init.js';
+export { logger as sdkLogger, type Logger as SDKLogger } from '@/logger.js';
+export type { RequestOptionsNoCapture, AsyncOptions } from '@/types.js';
 
 export {
-  CancelablePromise,
-  defineEventHandlers,
-  emitMiniAppsEvent,
-  isIframe,
-  removeEventHandlers,
-  compareVersions,
-  createPostEvent,
-  $debug,
-  ERR_CANCELED,
-  ERR_ABORTED,
-  ERR_METHOD_PARAMETER_UNSUPPORTED,
-  ERR_METHOD_UNSUPPORTED,
-  ERR_TIMED_OUT,
-  ERR_UNKNOWN_ENV,
-  ERR_RETRIEVE_LP_FAILED,
-  ERR_CUSTOM_METHOD_ERR_RESPONSE,
-  invokeCustomMethod,
+  decodeBase64Url,
+  encodeBase64Url,
+  createStartParam,
+  decodeStartParam,
+  isSafeToCreateStartParam,
   isTMA,
+  mockTelegramEnv,
+  targetOrigin,
   on,
   off,
-  postEvent,
-  $targetOrigin,
-  request,
-  subscribe,
-  supports,
-  unsubscribe,
-  mockTelegramEnv,
-  deleteCssVar,
-  setCssVar,
-  isAbortError,
-  isTimeoutError,
-  isCanceledError,
-  addEventListener,
   retrieveLaunchParams,
-  TypedError,
+  retrieveRawLaunchParams,
+  retrieveRawInitData,
+  type RetrieveLPResult,
+  type RetrieveLPResultCamelCased,
+  type RequestOptions,
+  type InvokeCustomMethodOptions,
+  type EventListener,
+  type SubscribeListener,
+  type EventPayload,
+  type WriteAccessRequestedStatus,
+  UnknownEnvError,
+  isUnknownEnvError,
+  createPostEvent,
+  type CreatePostEventMode,
+  InvokeCustomMethodError,
+  isInvokeCustomMethodError,
+  MethodParameterUnsupportedError,
+  isMethodMethodParameterUnsupportedError,
+  type CustomMethodName,
+  type CustomMethodParams,
+  type CreateMethodParams,
+  type Methods,
+  type AnyInvokeCustomMethodParams,
+  type Events,
+  isMethodUnsupportedError,
+  type EventWithoutPayload,
+  type EventWithPayload,
+  type CustomMethodsParams,
+  type InvokeCustomMethodFn,
+  supports,
+  emitEvent,
+  MethodUnsupportedError,
+  type EmojiStatusAccessRequestedStatus,
+  type HomeScreenStatus,
+  type OnUnsupportedFn,
+  type ImpactHapticFeedbackParams,
+  type ImpactHapticFeedbackStyle,
+  type MethodName,
+  type MethodParams,
+  type PostEventFn,
+  type NotificationHapticFeedbackParams,
+  type RequestFn,
+  type BiometryAuthRequestStatus,
+  type PhoneRequestedStatus,
+  type SafeAreaInsets,
+  type BiometryType,
+  type BiometryTokenUpdateStatus,
+  type EventName,
+  type NotificationHapticFeedbackType,
+  type SelectionHapticFeedbackParams,
+  type MethodNameWithoutParams,
+  type MethodNameWithOptionalParams,
+  type MethodNameWithRequiredParams,
+  type EmojiStatusFailedError,
+  type FullScreenErrorStatus,
+  type InvoiceStatus,
+  type RequestResult,
+  isLaunchParamsRetrieveError,
+  LaunchParamsRetrieveError,
+  InvalidLaunchParamsError,
+  isInvalidLaunchParamsError,
+  type BackgroundColor,
+  type PopupParams,
+  type BottomBarColor,
+  type PopupButton,
+  type HeaderColorKey,
+  type OpenLinkBrowser,
+  type SecondaryButtonPosition,
+  type SwitchInlineQueryChatType,
+  isCancelledError,
+  isTimeoutError,
+  CancelledError,
+  TimeoutError,
+  AbortablePromise,
+  ManualPromise,
+  postMessage,
+  postMessageImplementation,
+  applyPolyfills,
+  type PostMessage,
+  logger as bridgeLogger,
+  type Logger as BridgeLogger,
 } from '@telegram-apps/bridge';
-export type {
-  AsyncOptions,
-  AnyHapticFeedbackParams,
-  AnyInvokeCustomMethodParams,
-  BiometryAuthRequestStatus,
-  BiometryTokenUpdateStatus,
-  BiometryType,
-  Chat,
-  ChatType,
-  CustomMethodName,
-  CustomMethodParams,
-  CustomMethodsParams,
-  EventListener,
-  EventName,
-  EventPayload,
-  Events,
-  ExecuteWithOptions,
-  ExecuteWithPostEvent,
-  HeaderColorKey,
-  ImpactHapticFeedbackParams,
-  ImpactHapticFeedbackStyle,
-  InvoiceStatus,
-  LaunchParams,
-  MethodName,
-  MethodNameWithOptionalParams,
-  MethodNameWithoutParams,
-  MethodNameWithRequiredParams,
-  MethodNameWithVersionedParams,
-  MethodParams,
-  Methods,
-  MethodVersionedParams,
-  NotificationHapticFeedbackParams,
-  NotificationHapticFeedbackType,
-  OpenLinkBrowser,
-  OnUnsupportedFn,
-  PhoneRequestedStatus,
-  Platform,
-  PopupButton,
-  PopupParams,
-  PostEventFn,
-  RequestCaptureEventFn,
-  RequestCaptureEventsFn,
-  RGB,
-  RGBShort,
-  SelectionHapticFeedbackParams,
-  SwitchInlineQueryChatType,
-  ThemeParamsKey,
-  User,
-  Version,
-  WriteAccessRequestedStatus,
-  CreatePostEventMode,
-  RequestBasicOptions,
-  RequestCaptureFn,
-  RequestFn,
-  RequestResult,
-  SubscribeListener,
-  TypedErrorOptions,
-} from '@telegram-apps/bridge';
-
 export {
   isRGB,
-  isRGBShort,
-  isRecord,
-  toRecord,
   toRGB,
-  ERR_UNEXPECTED_VALUE,
-  ERR_PARSE,
-  ERR_INVALID_VALUE,
-  ERR_UNEXPECTED_TYPE,
-  serializeLaunchParams,
-  serializeThemeParams,
+  isRGBShort,
+  serializeToQuery,
+  serializeInitDataQuery,
+  serializeLaunchParamsQuery,
+  transformQueryUsing,
+  parseInitDataQuery,
+  parseLaunchParamsQuery,
 } from '@telegram-apps/transformers';
+export type {
+  RGB,
+  User,
+  Chat,
+  InitData,
+  ChatType,
+  RGBShort,
+  Platform,
+  ThemeParams,
+  LaunchParams,
+  KnownThemeParamsKey,
+  Version,
+} from '@telegram-apps/types';
+export {
+  createLogger,
+  type LogLevel,
+  type LoggerOptions,
+  type Logger,
+  type LoggerFn,
+  type LoggerForceFn,
+} from '@telegram-apps/toolkit';

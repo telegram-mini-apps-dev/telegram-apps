@@ -96,8 +96,42 @@ export function supports(
       return versionLessOrEqual('7.2', paramOrVersion);
     case 'web_app_setup_swipe_behavior':
       return versionLessOrEqual('7.7', paramOrVersion);
+    case 'web_app_share_to_story':
+      return versionLessOrEqual('7.8', paramOrVersion);
     case 'web_app_setup_secondary_button':
+    case 'web_app_set_bottom_bar_color':
       return versionLessOrEqual('7.10', paramOrVersion);
+    case 'web_app_request_safe_area':
+    case 'web_app_request_content_safe_area':
+    case 'web_app_request_fullscreen':
+    case 'web_app_exit_fullscreen':
+    case 'web_app_set_emoji_status':
+    case 'web_app_add_to_home_screen':
+    case 'web_app_check_home_screen':
+    case 'web_app_request_emoji_status_access':
+    case 'web_app_check_location':
+    case 'web_app_open_location_settings':
+    case 'web_app_request_file_download':
+    case 'web_app_request_location':
+    case 'web_app_send_prepared_message':
+    case 'web_app_start_accelerometer':
+    case 'web_app_start_device_orientation':
+    case 'web_app_start_gyroscope':
+    case 'web_app_stop_accelerometer':
+    case 'web_app_stop_device_orientation':
+    case 'web_app_stop_gyroscope':
+    case 'web_app_toggle_orientation_lock':
+      return versionLessOrEqual('8.0', paramOrVersion);
+    case 'web_app_device_storage_clear':
+    case 'web_app_device_storage_get_key':
+    case 'web_app_device_storage_save_key':
+    case 'web_app_secure_storage_clear':
+    case 'web_app_secure_storage_get_key':
+    case 'web_app_secure_storage_restore_key':
+    case 'web_app_secure_storage_save_key':
+      return versionLessOrEqual('9.0', paramOrVersion);
+    case 'web_app_hide_keyboard':
+      return versionLessOrEqual('9.1', paramOrVersion);
     default:
       return [
         'iframe_ready',

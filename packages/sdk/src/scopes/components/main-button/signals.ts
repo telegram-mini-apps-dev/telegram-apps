@@ -1,58 +1,75 @@
-import { computed, type Computed, signal } from '@telegram-apps/signals';
+import type { Computed } from '@telegram-apps/signals';
+
+import {
+  buttonColor,
+  buttonTextColor,
+} from '@/scopes/components/theme-params/signals.js';
+import { createComputed, createSignal, createSignalsTuple } from '@/signals-registry.js';
 
 import type { State } from './types.js';
 
-/* USUAL */
+function fromState<K extends keyof Required<State>>(
+  key: K,
+): Computed<Required<State>[K]> {
+  return createComputed(() => state()[key]);
+}
+
+export const internalState = createSignal<State>({
+  hasShineEffect: false,
+  isEnabled: true,
+  isLoaderVisible: false,
+  isVisible: false,
+  text: 'Continue',
+});
 
 /**
  * Complete component state.
  */
-export const state = signal<State>({
-  backgroundColor: '#000000',
-  isEnabled: true,
-  isLoaderVisible: false,
-  isVisible: false,
-  text: '',
-  textColor: '#000000',
+export const state = createComputed<Required<State>>(() => {
+  const s = internalState();
+  return {
+    ...s,
+    backgroundColor: s.backgroundColor || buttonColor() || '#2481cc',
+    textColor: s.textColor || buttonTextColor() || '#ffffff',
+  };
 });
 
 /**
- * True if the component is currently mounted.
+ * Signal indicating if the Main Button is currently mounted.
  */
-export const isMounted = signal(false);
-
-/* COMPUTED */
-
-function createStateComputed<K extends keyof State>(key: K): Computed<State[K]> {
-  return computed(() => state()[key]);
-}
+export const [_isMounted, isMounted] = createSignalsTuple(false);
 
 /**
- * @see State.backgroundColor
+ * Signal containing the current Main Button background color.
  */
-export const backgroundColor = createStateComputed('backgroundColor');
+export const backgroundColor = fromState('backgroundColor');
 
 /**
- * @see State.isEnabled
+ * Signal indicating if the Main Button has a shining effect.
  */
-export const isEnabled = createStateComputed('isEnabled');
+export const hasShineEffect = fromState('hasShineEffect');
 
 /**
- * @see State.isLoaderVisible
+ * Signal indicating if the Main Button is currently active and can be clicked.
  */
-export const isLoaderVisible = createStateComputed('isLoaderVisible');
+export const isEnabled = fromState('isEnabled');
 
 /**
- * @see State.isVisible
+ * Signal indicating if the Main Button displays a loader inside it.
  */
-export const isVisible = createStateComputed('isVisible');
+export const isLoaderVisible = fromState('isLoaderVisible');
 
 /**
- * @see State.text
+ * Signal indicating if the Main Button is currently visible.
  */
-export const text = createStateComputed('text');
+export const isVisible = fromState('isVisible');
 
 /**
- * @see State.textColor
+ * Signal containing the Main Button text.
  */
-export const textColor = createStateComputed('textColor');
+export const text = fromState('text');
+
+/**
+ * Signal containing the current Main Button text color.
+ */
+export const textColor = fromState('textColor');

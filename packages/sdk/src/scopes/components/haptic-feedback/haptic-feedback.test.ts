@@ -1,23 +1,46 @@
-import { beforeEach, describe, expect, it } from 'vitest';
-
-import { mockPostEvent } from '@test-utils/mockPostEvent.js';
-import { resetPackageState } from '@test-utils/reset.js';
-
-import { $version } from '@/scopes/globals.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  mockPostEvent,
+  resetPackageState,
+  setMaxVersion,
+  mockMiniAppsEnv,
+} from '@test-utils/utils.js';
+import { testSafety } from '@test-utils/predefined/testSafety.js';
+import { testIsSupported } from '@test-utils/predefined/testIsSupported.js';
+
+import {
+  isSupported,
   impactOccurred,
   notificationOccurred,
   selectionChanged,
-  isSupported,
 } from './haptic-feedback.js';
 
 beforeEach(() => {
   resetPackageState();
+  vi.restoreAllMocks();
   mockPostEvent();
 });
 
+function setAvailable() {
+  setMaxVersion();
+  mockMiniAppsEnv();
+}
+
+describe.each([
+  ['impactOccurred', impactOccurred],
+  ['notificationOccurred', notificationOccurred],
+  ['selectionChanged', selectionChanged],
+] as const)('%s', (name, fn) => {
+  testSafety(fn, name, {
+    component: 'hapticFeedback',
+    minVersion: '6.1',
+  });
+});
+
 describe('impactOccurred', () => {
+  beforeEach(setAvailable);
+
   it('should call "web_app_trigger_haptic_feedback" method with { type: "impact", style: {{style}} }', () => {
     const spy = mockPostEvent();
     impactOccurred('heavy');
@@ -29,20 +52,9 @@ describe('impactOccurred', () => {
   });
 });
 
-describe('isSupported', () => {
-  it('should return false if version is less than 6.1. True otherwise', () => {
-    $version.set('6.0');
-    expect(isSupported()).toBe(false);
-
-    $version.set('6.1');
-    expect(isSupported()).toBe(true);
-
-    $version.set('6.2');
-    expect(isSupported()).toBe(true);
-  });
-});
-
 describe('notificationOccurred', () => {
+  beforeEach(setAvailable);
+
   it('should call "web_app_trigger_haptic_feedback" method with { type: "notification", notification_type: {{type}} }', () => {
     const spy = mockPostEvent();
     notificationOccurred('success');
@@ -55,6 +67,8 @@ describe('notificationOccurred', () => {
 });
 
 describe('selectionChanged', () => {
+  beforeEach(setAvailable);
+
   it('should call "web_app_trigger_haptic_feedback" method with { type: "selection_change" }', () => {
     const spy = mockPostEvent();
     selectionChanged();
@@ -63,4 +77,8 @@ describe('selectionChanged', () => {
       type: 'selection_change',
     });
   });
+});
+
+describe('isSupported', () => {
+  testIsSupported(isSupported, '6.1');
 });

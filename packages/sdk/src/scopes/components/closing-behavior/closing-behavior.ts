@@ -1,60 +1,86 @@
 import { isPageReload } from '@telegram-apps/navigation';
-import { getStorageValue, setStorageValue } from '@telegram-apps/bridge';
-import { signal } from '@telegram-apps/signals';
+import { getStorageValue, setStorageValue } from '@telegram-apps/toolkit';
 
-import { postEvent } from '@/scopes/globals.js';
+import { postEvent } from '@/globals.js';
+import { createWrapMounted } from '@/scopes/wrappers/createWrapMounted.js';
+import { createWrapBasic } from '@/scopes/wrappers/createWrapBasic.js';
+import { createSignalsTuple } from '@/signals-registry.js';
 
 type StorageValue = boolean;
 
-const STORAGE_KEY = 'closingConfirmation';
+const COMPONENT_NAME = 'closingBehavior';
 
 /**
- * Disables the confirmation dialog when closing the Mini App.
+ * Signal indicating if the confirmation dialog should be shown, while the user
+ * is trying to close the Mini App.
  */
-export function disableConfirmation(): void {
-  isConfirmationEnabled.set(false);
-}
+export const [_isConfirmationEnabled, isConfirmationEnabled] = createSignalsTuple(false);
 
 /**
- * True if the component is currently mounted.
+ * Signal indicating if the Closing Behavior component is currently mounted.
  */
-export const isMounted = signal(false);
+export const [_isMounted, isMounted] = createSignalsTuple(false);
+
+const wrapMounted = createWrapMounted(COMPONENT_NAME, isMounted);
+const wrapBasic = createWrapBasic(COMPONENT_NAME);
 
 /**
- * True if the confirmation dialog should be shown while the user is trying to close the Mini App.
+ * Disables the closing confirmation dialog.
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The parent component is not mounted
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @example
+ * if (disableConfirmation.isAvailable()) {
+ *   disableConfirmation();
+ * }
  */
-export const isConfirmationEnabled = signal(false);
+export const disableConfirmation = wrapMounted('disableConfirmation', (): void => {
+  setClosingConfirmation(false);
+});
 
 /**
- * Enables the confirmation dialog when closing the Mini App.
+ * Enables the closing confirmation dialog.
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The parent component is not mounted
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @example
+ * if (enableConfirmation.isAvailable()) {
+ *   enableConfirmation();
+ * }
  */
-export function enableConfirmation(): void {
-  isConfirmationEnabled.set(true);
-}
+export const enableConfirmation = wrapMounted('enableConfirmation', (): void => {
+  setClosingConfirmation(true);
+});
 
 /**
- * Mounts the component.
- *
- * This function restores the component state and is automatically saving it in the local storage
- * if it changed.
+ * Mounts the Closing Behavior component restoring its state.
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @example
+ * if (mount.isAvailable()) {
+ *   mount();
+ * }
  */
-export function mount(): void {
-  if (!isMounted()) {
-    isConfirmationEnabled.set(isPageReload() && getStorageValue<StorageValue>(STORAGE_KEY) || false);
-    isConfirmationEnabled.sub(onStateChanged);
-    isMounted.set(true);
+export const mount = wrapBasic('mount', (): void => {
+  if (!_isMounted()) {
+    setClosingConfirmation(
+      isPageReload() && getStorageValue<StorageValue>(COMPONENT_NAME) || false,
+    );
+    _isMounted.set(true);
+  }
+});
+
+function setClosingConfirmation(value: boolean): void {
+  if (value !== _isConfirmationEnabled()) {
+    postEvent('web_app_setup_closing_behavior', { need_confirmation: value });
+    setStorageValue<StorageValue>(COMPONENT_NAME, value);
+    _isConfirmationEnabled.set(value);
   }
 }
 
-function onStateChanged(value: boolean): void {
-  postEvent('web_app_setup_closing_behavior', { need_confirmation: value });
-  setStorageValue<StorageValue>(STORAGE_KEY, value);
-}
-
 /**
- * Unmounts the component, removing the listener, saving the component state in the local storage.
+ * Unmounts the Closing Behavior component.
  */
 export function unmount(): void {
-  isConfirmationEnabled.unsub(onStateChanged);
-  isMounted.set(false);
+  _isMounted.set(false);
 }

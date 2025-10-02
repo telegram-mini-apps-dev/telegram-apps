@@ -8,18 +8,16 @@ import type { CreateHmacFn, SignData, Text } from '../types.js';
 const createHmac: CreateHmacFn<true> = async (data, key) => {
   const encoder = new TextEncoder();
 
-  return Buffer.from(
-    await crypto.subtle.sign(
-      'HMAC',
-      await crypto.subtle.importKey(
-        'raw',
-        typeof key === 'string' ? encoder.encode(key) : key,
-        { name: 'HMAC', hash: 'SHA-256' },
-        false,
-        ['sign', 'verify'],
-      ),
-      encoder.encode(data.toString()),
+  return crypto.subtle.sign(
+    'HMAC',
+    await crypto.subtle.importKey(
+      'raw',
+      typeof key === 'string' ? encoder.encode(key) : key,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign', 'verify'],
     ),
+    typeof data === 'string' ? encoder.encode(data) : data,
   );
 };
 
@@ -28,7 +26,7 @@ const createHmac: CreateHmacFn<true> = async (data, key) => {
  * Hashes specified token using a string, expected during init data sign.
  * @param token - token to hash.
  */
-export function hashToken(token: Text): Promise<Buffer> {
+export function hashToken(token: Text): Promise<ArrayBuffer> {
   return _hashToken(token, createHmac);
 }
 
@@ -75,10 +73,10 @@ export function signData(data: Text, key: Text, options?: SignDataOptions): Prom
  * @param value - value to check.
  * @param token - bot secret token.
  * @param options - additional validation options.
- * @throws {TypeError} "auth_date" should present integer
- * @throws {Error} "hash" is empty or not found
- * @throws {Error} "auth_date" is empty or not found
- * @throws {Error} Init data expired
+ * @throws {SignatureInvalidError} Signature is invalid.
+ * @throws {AuthDateInvalidError} "auth_date" property is missing or invalid.
+ * @throws {SignatureMissingError} "hash" property is missing.
+ * @throws {ExpiredError} Init data is expired.
  */
 export function validate(
   value: ValidateValue,

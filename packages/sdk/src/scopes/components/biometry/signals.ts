@@ -1,33 +1,20 @@
-import { signal } from '@telegram-apps/signals';
+import { createComputed, createSignalsTuple } from '@/signals-registry.js';
 
 import type { State } from './types.js';
 
 /**
  * Complete biometry manager state.
  */
-export const state = signal<State | undefined>();
+export const [_state, state] = createSignalsTuple<State>({
+  available: false,
+  type: '',
+  accessGranted: false,
+  accessRequested: false,
+  deviceId: '',
+  tokenSaved: false,
+});
 
 /**
- * True if the manager is currently authenticating.
+ * Signal indicating biometry is available.
  */
-export const isAuthenticating = signal<boolean>(false);
-
-/**
- * True if the manager is currently requesting access.
- */
-export const isRequestingAccess = signal<boolean>(false);
-
-/**
- * True if the component is currently mounted.
- */
-export const isMounted = signal(false);
-
-/**
- * True if the component is currently mounting.
- */
-export const isMounting = signal<boolean>(false);
-
-/**
- * Error occurred while mounting the component.
- */
-export const mountError = signal<Error | undefined>(undefined);
+export const isAvailable = createComputed(() => _state().available);

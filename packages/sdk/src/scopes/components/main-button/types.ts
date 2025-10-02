@@ -1,28 +1,11 @@
-import type { RGB } from '@telegram-apps/bridge';
+import type { RGB } from '@telegram-apps/types';
 
 export interface State {
-  /**
-   * The main button background color.
-   */
-  backgroundColor: RGB;
-  /**
-   * True if the main button is currently clickable.
-   */
+  backgroundColor?: RGB;
+  hasShineEffect: boolean;
   isEnabled: boolean;
-  /**
-   * True if the main button loader is visible.
-   */
   isLoaderVisible: boolean;
-  /**
-   * True if the main button is visible.
-   */
   isVisible: boolean;
-  /**
-   * The main button text.
-   */
   text: string;
-  /**
-   * The main button text color.
-   */
-  textColor: RGB;
+  textColor?: RGB;
 }

@@ -1,105 +1,103 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mockSessionStorageGetItem, mockPageReload, mockSessionStorageSetItem } from 'test-utils';
-
-import { mockPostEvent } from '@test-utils/mockPostEvent.js';
-import { resetPackageState, resetSignal } from '@test-utils/reset.js';
-import { $version } from '@/scopes/globals.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  mockSessionStorageGetItem,
+  mockPageReload,
+  mockSessionStorageSetItem,
+} from 'test-utils';
 
 import {
-  disableVertical,
-  enableVertical,
+  mockPostEvent,
+  resetPackageState,
+  setMaxVersion,
+  mockMiniAppsEnv,
+} from '@test-utils/utils.js';
+import { testSafety } from '@test-utils/predefined/testSafety.js';
+import { testIsSupported } from '@test-utils/predefined/testIsSupported.js';
+
+import {
+  isMounted,
+  _isMounted,
+  _isVerticalEnabled,
   mount,
   unmount,
   isSupported,
-  isMounted,
+  enableVertical,
+  disableVertical,
   isVerticalEnabled,
 } from './swipe-behavior.js';
 
 beforeEach(() => {
   resetPackageState();
-  [isVerticalEnabled, isMounted].forEach(resetSignal);
   vi.restoreAllMocks();
   mockPostEvent();
 });
 
-describe('mounted', () => {
-  beforeEach(mount);
-  afterEach(unmount);
+function setAvailable() {
+  setMaxVersion();
+  mockMiniAppsEnv();
+  _isMounted.set(true);
+}
 
-  describe('disableVerticalSwipes', () => {
-    it('should call postEvent with "web_app_setup_swipe_behavior" and { allow_vertical_swipe: false }', () => {
-      isVerticalEnabled.set(true);
-      const spy = mockPostEvent();
-      disableVertical();
-      disableVertical();
-      disableVertical();
-      expect(spy).toBeCalledTimes(1);
-      expect(spy).toBeCalledWith('web_app_setup_swipe_behavior', { allow_vertical_swipe: false });
-    });
-  });
-
-  describe('enableVerticalSwipes', () => {
-    it('should call postEvent with "web_app_setup_swipe_behavior" and { allow_vertical_swipe: true }', () => {
-      isVerticalEnabled.set(false);
-      const spy = mockPostEvent();
-      enableVertical();
-      enableVertical();
-      enableVertical();
-      expect(spy).toBeCalledTimes(1);
-      expect(spy).toBeCalledWith('web_app_setup_swipe_behavior', { allow_vertical_swipe: true });
-    });
+describe.each([
+  ['disableVertical', disableVertical, _isMounted],
+  ['enableVertical', enableVertical, _isMounted],
+  ['mount', mount, undefined],
+] as const)('%s', (name, fn, isMounted) => {
+  testSafety(fn, name, {
+    component: 'swipeBehavior',
+    minVersion: '7.7',
+    isMounted,
   });
 });
 
+describe.each([
+  ['disableVertical', disableVertical, false],
+  ['enableVertical', enableVertical, true],
+])('%s', (_, fn, value) => {
+  beforeEach(setAvailable);
 
-describe('not mounted', () => {
-  describe('disableVerticalSwipes', () => {
-    it('should not call postEvent', () => {
-      isVerticalEnabled.set(true);
-      const spy = mockPostEvent();
-      disableVertical();
-      disableVertical();
-      disableVertical();
-      expect(spy).toBeCalledTimes(0);
-    });
+  it(`should set isConfirmationEnabled = ${value}`, () => {
+    _isVerticalEnabled.set(!value);
+    expect(isVerticalEnabled()).toBe(!value);
+    fn();
+    expect(isVerticalEnabled()).toBe(value);
   });
 
-  describe('enableVerticalSwipes', () => {
-    it('should not call postEvent', () => {
-      isVerticalEnabled.set(false);
-      const spy = mockPostEvent();
-      enableVertical();
-      enableVertical();
-      enableVertical();
-      expect(spy).toBeCalledTimes(0);
-    });
+  it(`should call postEvent with "web_app_setup_swipe_behavior" and { allow_vertical_swipe: ${value} }`, () => {
+    _isVerticalEnabled.set(!value);
+    const spy = mockPostEvent();
+    fn();
+    fn();
+    expect(spy).toBeCalledTimes(1);
+    expect(spy).toBeCalledWith('web_app_setup_swipe_behavior', { allow_vertical_swipe: value });
   });
-});
 
-describe('disableVerticalSwipes', () => {
-  it('should set isVerticalSwipesEnabled = false', () => {
-    isVerticalEnabled.set(true);
-    expect(isVerticalEnabled()).toBe(true);
-    disableVertical();
-    expect(isVerticalEnabled()).toBe(false);
+  it(`should call sessionStorage.setItem with "tapps/swipeBehavior" and "${value}" if value changed`, () => {
+    _isVerticalEnabled.set(value);
+    const spy = mockSessionStorageSetItem();
+    fn();
+    // Should call retrieveLaunchParams.
+    expect(spy).toHaveBeenCalledOnce();
+
+    spy.mockClear();
+
+    _isVerticalEnabled.set(!value);
+    fn();
+    // Should call retrieveLaunchParams + save component state.
+    expect(spy).toHaveBeenCalledTimes(2);
+    expect(spy).toHaveBeenNthCalledWith(2, 'tapps/swipeBehavior', String(value));
   });
 });
 
 describe('isSupported', () => {
-  it('should return false if version is less than 7.7. True otherwise', () => {
-    $version.set('7.6');
-    expect(isSupported()).toBe(false);
-
-    $version.set('7.7');
-    expect(isSupported()).toBe(true);
-
-    $version.set('7.8');
-    expect(isSupported()).toBe(true);
-  });
+  testIsSupported(isSupported, '7.7');
 });
 
 describe('mount', () => {
-  afterEach(unmount);
+  beforeEach(() => {
+    mockMiniAppsEnv();
+    setMaxVersion();
+  });
 
   it('should set isMounted = true', () => {
     expect(isMounted()).toBe(false);
@@ -113,17 +111,15 @@ describe('mount', () => {
     });
 
     it('should use value from session storage key "tapps/swipeBehavior"', () => {
-      const spy = vi.fn(() => 'true');
-      mockSessionStorageGetItem(spy);
+      const spy = mockSessionStorageGetItem(() => 'true');
       mount();
       expect(spy).toHaveBeenCalledTimes(1);
       expect(spy).toHaveBeenCalledWith('tapps/swipeBehavior');
       expect(isVerticalEnabled()).toBe(true);
     });
 
-    it('should set isVerticalSwipesEnabled false if session storage key "tapps/swipeBehavior" not presented', () => {
-      const spy = vi.fn(() => null);
-      mockSessionStorageGetItem(spy);
+    it('should set isConfirmationEnabled false if session storage key "tapps/swipeBehavior" not presented', () => {
+      const spy = mockSessionStorageGetItem(() => null);
       mount();
       expect(spy).toHaveBeenCalledTimes(1);
       expect(spy).toHaveBeenCalledWith('tapps/swipeBehavior');
@@ -132,7 +128,7 @@ describe('mount', () => {
   });
 
   describe('first launch', () => {
-    it('should set isVerticalSwipesEnabled false', () => {
+    it('should set isConfirmationEnabled false', () => {
       mount();
       expect(isVerticalEnabled()).toBe(false);
     });
@@ -140,31 +136,11 @@ describe('mount', () => {
 });
 
 describe('unmount', () => {
-  beforeEach(mount);
+  beforeEach(setAvailable);
 
-  it('should stop calling postEvent function and session storage updates when isVerticalSwipesEnabled changes', () => {
-    const postEventSpy = mockPostEvent();
-    const storageSpy = mockSessionStorageSetItem();
-    isVerticalEnabled.set(true);
-    expect(postEventSpy).toHaveBeenCalledTimes(1);
-    expect(storageSpy).toHaveBeenCalledTimes(1);
-
-    postEventSpy.mockClear();
-    storageSpy.mockClear();
-
+  it('should set isMounted = false', () => {
+    expect(isMounted()).toBe(true);
     unmount();
-    isVerticalEnabled.set(false);
-
-    expect(postEventSpy).toHaveBeenCalledTimes(0);
-    expect(storageSpy).toHaveBeenCalledTimes(0);
-  });
-});
-
-describe('enableVerticalSwipes', () => {
-  it('should set isVerticalSwipesEnabled = true', () => {
-    isVerticalEnabled.set(false);
-    expect(isVerticalEnabled()).toBe(false);
-    enableVertical();
-    expect(isVerticalEnabled()).toBe(true);
+    expect(isMounted()).toBe(false);
   });
 });

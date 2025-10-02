@@ -13,8 +13,10 @@ To do so, use the `mount` method. It will update the `isMounted` signal property
 ```ts [Variable]
 import { viewport } from '@telegram-apps/sdk';
 
-viewport.mount();
-viewport.isMounted(); // true
+if (viewport.mount.isAvailable()) {
+  viewport.mount();
+  viewport.isMounted(); // true
+}
 ```
 
 ```ts [Functions]
@@ -23,8 +25,10 @@ import {
   isViewportMounted,
 } from '@telegram-apps/sdk';
 
-mountViewport();
-isViewportMounted(); // true
+if (mountViewport.isAvailable()) {
+  mountViewport();
+  isViewportMounted(); // true
+}
 ```
 
 :::
@@ -62,19 +66,23 @@ prefix `--tg-viewport-`.
 ::: code-group
 
 ```ts [Variable]
-viewport.bindCssVars();
-// Creates CSS variables like:
-// --tg-viewport-height: 675px
-// --tg-viewport-width: 320px
-// --tg-viewport-stable-height: 675px
+import { viewport } from '@telegram-apps/sdk';
 
-viewport.bindCssVars(key => `--my-prefix-${key}`);
-// Creates CSS variables like:
-// --my-prefix-height: 675px
-// --my-prefix-width: 320px
-// --my-prefix-stableHeight: 675px
+if (viewport.bindCssVars.isAvailable()) {
+  viewport.bindCssVars();
+  // Creates CSS variables like:
+  // --tg-viewport-height: 675px
+  // --tg-viewport-width: 320px
+  // --tg-viewport-stable-height: 675px
 
-viewport.isCssVarsBound(); // true
+  viewport.bindCssVars(key => `--my-prefix-${key}`);
+  // Creates CSS variables like:
+  // --my-prefix-height: 675px
+  // --my-prefix-width: 320px
+  // --my-prefix-stableHeight: 675px
+
+  viewport.isCssVarsBound(); // true
+}
 ```
 
 ```ts [Functions]
@@ -83,19 +91,21 @@ import {
   isViewportCssVarsBound,
 } from '@telegram-apps/sdk';
 
-bindViewportCssVars();
-// Creates CSS variables like:
-// --tg-viewport-height: 675px
-// --tg-viewport-width: 320px
-// --tg-viewport-stable-height: 675px
+if (bindViewportCssVars.isAvailable()) {
+  bindViewportCssVars();
+  // Creates CSS variables like:
+  // --tg-viewport-height: 675px
+  // --tg-viewport-width: 320px
+  // --tg-viewport-stable-height: 675px
 
-bindViewportCssVars(key => `--my-prefix-${key}`);
-// Creates CSS variables like:
-// --my-prefix-height: 675px
-// --my-prefix-width: 320px
-// --my-prefix-stableHeight: 675px
+  bindViewportCssVars(key => `--my-prefix-${key}`);
+  // Creates CSS variables like:
+  // --my-prefix-height: 675px
+  // --my-prefix-width: 320px
+  // --my-prefix-stableHeight: 675px
 
-isViewportCssVarsBound(); // true
+  isViewportCssVarsBound(); // true
+}
 ```
 
 :::
@@ -107,13 +117,124 @@ To expand the viewport, use the `expand` method.
 ::: code-group
 
 ```ts [Variable]
-viewport.expand();
+if (viewport.expand.isAvailable()) {
+  viewport.expand();
+}
 ```
 
 ```ts [Functions]
 import { expandViewport } from '@telegram-apps/sdk';
 
-expandViewport();
+if (expandViewport.isAvailable()) {
+  expandViewport();
+}
+```
+
+:::
+
+## Fullscreen Mode
+
+To enable the fullscreen mode, the method `requestFullscreen` is used:
+
+::: code-group
+
+```ts [Variable]
+if (viewport.requestFullscreen.isAvailable()) {
+  await viewport.requestFullscreen();
+  viewport.isFullscreen(); // true
+}
+```
+
+```ts [Functions]
+import { requestFullscreen, isFullscreen } from '@telegram-apps/sdk';
+
+if (requestFullscreen.isAvailable()) {
+  await requestFullscreen();
+  isFullscreen(); // true
+}
+```
+
+:::
+
+To exit the fullscreen mode, use the `exitFullscreen` method:
+
+::: code-group
+
+```ts [Variable]
+if (viewport.exitFullscreen.isAvailable()) {
+  await viewport.exitFullscreen();
+  viewport.isFullscreen(); // false
+}
+```
+
+```ts [Functions]
+import { exitFullscreen, isFullscreen } from '@telegram-apps/sdk';
+
+if (exitFullscreen.isAvailable()) {
+  await exitFullscreen();
+  isFullscreen(); // false
+}
+```
+
+:::
+
+## Safe Area Insets
+
+The viewport component offers access to two types of insets:
+
+- **Safe area insets**
+- **Content safe area insets**
+
+For more details on the differences between these inset types, visit the
+[**Viewport**](../../../../platform/viewport.md) page.
+
+The component provides access to these insets through the following signals:
+
+::: code-group
+
+```ts [Variable]
+// Objects with numeric properties "top", "bottom", "left" and "right".
+viewport.safeAreaInsets();
+viewport.contentSafeAreaInsets();
+
+// Numeric values.
+viewport.safeAreaInsetTop();
+viewport.safeAreaInsetBottom();
+viewport.safeAreaInsetLeft();
+viewport.safeAreaInsetRight();
+viewport.contentSafeAreaInsetTop();
+viewport.contentSafeAreaInsetBottom();
+viewport.contentSafeAreaInsetLeft();
+viewport.contentSafeAreaInsetRight();
+```
+
+```ts [Functions]
+import {
+  viewportSafeAreaInsets,
+  viewportSafeAreaInsetTop,
+  viewportSafeAreaInsetBottom,
+  viewportSafeAreaInsetLeft,
+  viewportSafeAreaInsetRight,
+  viewportContentSafeAreaInsets,
+  viewportContentSafeAreaInsetTop,
+  viewportContentSafeAreaInsetBottom,
+  viewportContentSafeAreaInsetLeft,
+  viewportContentSafeAreaInsetRight,
+} from '@telegram-apps/sdk';
+
+// Objects with numeric properties "top", "bottom", "left" and "right".
+viewportSafeAreaInsets();
+viewportContentSafeAreaInsets();
+
+// Numeric values.
+viewportSafeAreaInsetTop();
+viewportSafeAreaInsetBottom();
+viewportSafeAreaInsetLeft();
+viewportSafeAreaInsetRight();
+viewportContentSafeAreaInsetTop();
+viewportContentSafeAreaInsetBottom();
+viewportContentSafeAreaInsetLeft();
+viewportContentSafeAreaInsetRight();
 ```
 
 :::

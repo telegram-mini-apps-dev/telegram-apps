@@ -1,82 +1,79 @@
-import type { ThemeParams } from '@telegram-apps/bridge';
-import { computed, type Computed, signal } from '@telegram-apps/signals';
+import type { ThemeParams } from '@telegram-apps/types';
+import type { Computed } from '@telegram-apps/signals';
 
 import { isColorDark } from '@/utils/isColorDark.js';
-
-/* USUAL */
-
-/**
- * True if the component is currently mounted.
- */
-export const isMounted = signal(false);
+import { createComputed, createSignalsTuple } from '@/signals-registry.js';
 
 /**
  * True if CSS variables are currently bound.
  */
-export const isCssVarsBound = signal(false);
+export const [_isCssVarsBound, isCssVarsBound] = createSignalsTuple(false);
 
 /**
  * Complete component state.
  */
-export const state = signal<ThemeParams>({});
+export const [_state, state] = createSignalsTuple<ThemeParams>({});
 
-/* COMPUTED */
-
-function createStateComputed<K extends keyof ThemeParams>(key: K): Computed<ThemeParams[K] | undefined> {
-  return computed(() => state()[key]);
+function fromState<K extends keyof ThemeParams>(key: K): Computed<ThemeParams[K] | undefined> {
+  return createComputed(() => _state()[key]);
 }
 
 /**
  * @since v6.10
  */
-export const accentTextColor = createStateComputed('accentTextColor');
+export const accentTextColor = fromState('accent_text_color');
 
-export const backgroundColor = createStateComputed('bgColor');
+export const backgroundColor = fromState('bg_color');
 
-export const buttonColor = createStateComputed('buttonColor');
+export const buttonColor = fromState('button_color');
 
-export const buttonTextColor = createStateComputed('buttonTextColor');
+export const buttonTextColor = fromState('button_text_color');
 
-export const destructiveTextColor = createStateComputed('destructiveTextColor');
+/**
+ * @since v7.10
+ */
+export const bottomBarBgColor = fromState('bottom_bar_bg_color');
+
+export const destructiveTextColor = fromState('destructive_text_color');
 
 /**
  * @since v6.10
  */
-export const headerBackgroundColor = createStateComputed('headerBgColor');
+export const headerBackgroundColor = fromState('header_bg_color');
 
-export const hintColor = createStateComputed('hintColor');
+export const hintColor = fromState('hint_color');
 
 /**
  * @returns True if the current color scheme is recognized as dark.
  * This value is calculated based on the current theme's background color.
  */
-export const isDark = computed(() => {
-  const { bgColor } = state();
-  return !bgColor || isColorDark(bgColor);
+export const isDark = createComputed(() => {
+  const color = backgroundColor();
+  return !color || isColorDark(color);
 });
 
-export const linkColor = createStateComputed('linkColor');
+export const linkColor = fromState('link_color');
 
-export const secondaryBackgroundColor = createStateComputed('secondaryBgColor');
-
-/**
- * @since v6.10
- */
-export const sectionBackgroundColor = createStateComputed('sectionBgColor');
+export const secondaryBackgroundColor = fromState('secondary_bg_color');
 
 /**
  * @since v6.10
  */
-export const sectionHeaderTextColor = createStateComputed('sectionHeaderTextColor');
+export const sectionBackgroundColor = fromState('section_bg_color');
+
+/**
+ * @since v6.10
+ */
+export const sectionHeaderTextColor = fromState('section_header_text_color');
 
 /**
  * @since v7.6
  */
-export const sectionSeparatorColor = createStateComputed('sectionSeparatorColor');
+export const sectionSeparatorColor = fromState('section_separator_color');
 
 /**
  * @since v6.10
  */
-export const subtitleTextColor = createStateComputed('subtitleTextColor');
+export const subtitleTextColor = fromState('subtitle_text_color');
 
-export const textColor = createStateComputed('textColor');
+export const textColor = fromState('text_color');

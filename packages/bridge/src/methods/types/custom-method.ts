@@ -18,8 +18,12 @@ export interface CustomMethodsParams {
    * Deletes storage values by their keys.
    */
   deleteStorageValues: {
-    keys: string | string[]
+    keys: string | string[];
   };
+  /**
+   * Returns current server time.
+   */
+  getCurrentTime: {};
   /**
    * Gets current user contact in case, Mini has access to it.
    */
@@ -32,7 +36,7 @@ export interface CustomMethodsParams {
    * Gets storage values by their keys.
    */
   getStorageValues: {
-    keys: string | string[]
+    keys: string | string[];
   };
   /**
    * Saves value by specified key in the storage.
@@ -56,5 +60,5 @@ export type CustomMethodParams<M extends CustomMethodName> = CustomMethodsParams
 export type AnyInvokeCustomMethodParams =
   | CreateInvokeCustomMethodParams<string, any>
   | {
-  [M in CustomMethodName]: CreateInvokeCustomMethodParams<M, CustomMethodParams<M>>
-}[CustomMethodName];
+    [M in CustomMethodName]: CreateInvokeCustomMethodParams<M, CustomMethodParams<M>>
+  }[CustomMethodName];

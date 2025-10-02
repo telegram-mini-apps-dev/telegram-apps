@@ -8,9 +8,7 @@
   "baseBranch": "master",
   "updateInternalDependencies": "patch",
   "ignore": [
-    "custom-playground",
-    "nextjs-template",
-    "reactjs-template",
-    "solidjs-template"
+    "docs",
+    "custom-playground"
   ]
 }

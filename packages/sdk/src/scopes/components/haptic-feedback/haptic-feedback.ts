@@ -1,45 +1,85 @@
-import {
-  supports,
-  type ImpactHapticFeedbackStyle,
-  type NotificationHapticFeedbackType,
+import type {
+  ImpactHapticFeedbackStyle,
+  NotificationHapticFeedbackType,
 } from '@telegram-apps/bridge';
 
-import { $version, postEvent } from '@/scopes/globals.js';
+import { postEvent } from '@/globals.js';
+import { createIsSupported } from '@/scopes/createIsSupported.js';
+import { createWrapSupported } from '@/scopes/wrappers/createWrapSupported.js';
 
-const MINI_APPS_METHOD = 'web_app_trigger_haptic_feedback';
+const HAPTIC_METHOD_NAME = 'web_app_trigger_haptic_feedback';
+const wrapSupported = createWrapSupported('hapticFeedback', HAPTIC_METHOD_NAME);
 
 /**
- * A method tells that an impact occurred. The Telegram app may play the appropriate haptics based
- * on style value passed.
+ * Signal indicating if the Haptic Feedback is supported.
+ */
+export const isSupported = createIsSupported(HAPTIC_METHOD_NAME);
+
+/**
+ * A method that tells if an impact occurred. The Telegram app may play the
+ * appropriate haptics based on style value passed.
  * @param style - impact style.
+ * @since Mini Apps v6.1
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @throws {FunctionNotAvailableError} The function is not supported
+ * @example
+ * if (impactOccurred.isAvailable()) {
+ *   impactOccurred('medium');
+ * }
  */
-export function impactOccurred(style: ImpactHapticFeedbackStyle): void {
-  postEvent(MINI_APPS_METHOD, { type: 'impact', impact_style: style });
-}
+export const impactOccurred = wrapSupported(
+  'impactOccurred',
+  (style: ImpactHapticFeedbackStyle): void => {
+    postEvent(HAPTIC_METHOD_NAME, {
+      type: 'impact',
+      impact_style: style,
+    });
+  },
+);
 
 /**
- * @returns True if the haptic feedback is supported.
- */
-export function isSupported(): boolean {
-  return supports(MINI_APPS_METHOD, $version());
-}
-
-/**
- * A method tells that a task or action has succeeded, failed, or produced a warning. The Telegram
- * app may play the appropriate haptics based on type value passed.
+ * A method tells that a task or action has succeeded, failed, or produced
+ * a warning. The Telegram app may play the appropriate haptics based on type
+ * value passed.
  * @param type - notification type.
+ * @since Mini Apps v6.1
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @throws {FunctionNotAvailableError} The function is not supported
+ * @example
+ * if (notificationOccurred.isAvailable()) {
+ *   notificationOccurred('success');
+ * }
  */
-export function notificationOccurred(type: NotificationHapticFeedbackType): void {
-  postEvent(MINI_APPS_METHOD, { type: 'notification', notification_type: type });
-}
+export const notificationOccurred = wrapSupported(
+  'notificationOccurred',
+  (type: NotificationHapticFeedbackType): void => {
+    postEvent(HAPTIC_METHOD_NAME, {
+      type: 'notification',
+      notification_type: type,
+    });
+  },
+);
 
 /**
- * A method tells that the user has changed a selection. The Telegram app may play the
- * appropriate haptics.
+ * A method tells that the user has changed a selection. The Telegram app may
+ * play the appropriate haptics.
  *
- * Do not use this feedback when the user makes or confirms a selection; use it only when the
- * selection changes.
+ * Do not use this feedback when the user makes or confirms a selection; use
+ * it only when the selection changes.
+ * @since Mini Apps v6.1
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @throws {FunctionNotAvailableError} The function is not supported
+ * @example
+ * if (selectionChanged.isAvailable()) {
+ *   selectionChanged();
+ * }
  */
-export function selectionChanged(): void {
-  postEvent(MINI_APPS_METHOD, { type: 'selection_change' });
-}
+export const selectionChanged = wrapSupported(
+  'selectionChanged',
+  (): void => {
+    postEvent(HAPTIC_METHOD_NAME, { type: 'selection_change' });
+  },
+);

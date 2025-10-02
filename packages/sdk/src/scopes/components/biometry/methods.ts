@@ -1,100 +1,167 @@
 import {
-  supports,
   on,
   off,
-  TypedError,
-  CancelablePromise,
-  getStorageValue,
-  setStorageValue,
   type BiometryTokenUpdateStatus,
   type BiometryAuthRequestStatus,
   type EventListener,
+  type EventPayload,
 } from '@telegram-apps/bridge';
 import { isPageReload } from '@telegram-apps/navigation';
+import { getStorageValue, setStorageValue } from '@telegram-apps/toolkit';
+import { AbortablePromise } from 'better-promises';
 
-import { $version, postEvent, request } from '@/scopes/globals.js';
-import { createMountFn } from '@/scopes/createMountFn.js';
-import { ERR_ALREADY_CALLED, ERR_NOT_AVAILABLE } from '@/errors.js';
+import { postEvent, request } from '@/globals.js';
+import { defineMountFn } from '@/scopes/defineMountFn.js';
+import { createIsSupported } from '@/scopes/createIsSupported.js';
+import { createWrapComplete } from '@/scopes/wrappers/createWrapComplete.js';
+import { createWrapSupported } from '@/scopes/wrappers/createWrapSupported.js';
+import { defineNonConcurrentFn } from '@/scopes/defineNonConcurrentFn.js';
+import { NotAvailableError } from '@/errors.js';
 
-import {
-  state,
-  mountError,
-  isMounted,
-  isRequestingAccess,
-  isAuthenticating,
-  isMounting,
-} from './signals.js';
-import { request as requestBiometry } from './static.js';
-import { eventToState } from './eventToState.js';
+import { _state } from './signals.js';
+import { requestBiometry } from './requestBiometry.js';
 import type {
   State,
   AuthenticateOptions,
   RequestAccessOptions,
   UpdateTokenOptions,
 } from './types.js';
+import { signalCancel } from '@/scopes/signalCancel.js';
 
 type StorageValue = State;
 
+const COMPONENT_NAME = 'biometry';
 const REQUEST_AUTH_METHOD = 'web_app_biometry_request_auth';
-const REQUEST_ACCESS_METHOD = 'web_app_biometry_request_access';
-const OPEN_SETTINGS_METHOD = 'web_app_biometry_open_settings';
-const UPDATE_TOKEN_METHOD = 'web_app_biometry_update_token';
-const BIOMETRY_INFO_RECEIVED_EVENT = 'biometry_info_received';
-const STORAGE_KEY = 'biometry';
+const INFO_RECEIVED_EVENT = 'biometry_info_received';
+
+const onBiometryInfoReceived: EventListener<'biometry_info_received'> = e => {
+  setState(eventToState(e));
+};
+
+function throwNotAvailable(): never {
+  throw new NotAvailableError('Biometry is not available');
+}
 
 /**
- * Attempts to authenticate a user using biometrics and fetch a previously stored
- * secure token.
- * @param options - method options.
- * @since 7.2
- * @returns Token from the local secure storage saved previously or undefined.
- * @throws {TypedError} ERR_ALREADY_CALLED
- * @throws {TypedError} ERR_NOT_AVAILABLE
+ * Converts `biometry_info_received` to some common shape.
+ * @param event - event payload.
+ * @see biometry_info_received
  */
-export function authenticate(options?: AuthenticateOptions): CancelablePromise<{
-  /**
-   * Authentication status.
-   */
-  status: BiometryAuthRequestStatus;
-  /**
-   * Token from the local secure storage saved previously.
-   */
-  token?: string;
-}> {
-  if (isAuthenticating()) {
-    return CancelablePromise.reject(new TypedError(ERR_ALREADY_CALLED));
+function eventToState(event: EventPayload<'biometry_info_received'>): State {
+  let available = false;
+  let tokenSaved = false;
+  let deviceId = '';
+  let accessRequested = false;
+  let type = '';
+  let accessGranted = false;
+  if (event.available) {
+    available = true;
+    tokenSaved = event.token_saved;
+    deviceId = event.device_id;
+    accessRequested = event.access_requested;
+    type = event.type;
+    accessGranted = event.access_granted;
   }
-
-  const s = state();
-  if (!s || !s.available) {
-    return CancelablePromise.reject(new TypedError(ERR_NOT_AVAILABLE));
-  }
-
-  isAuthenticating.set(true);
-
-  options ||= {};
-  return request(REQUEST_AUTH_METHOD, 'biometry_auth_requested', {
-    ...options,
-    params: { reason: (options.reason || '').trim() },
-  })
-    .then(response => {
-      const { token } = response;
-      if (typeof token === 'string') {
-        state.set({ ...s, token });
-      }
-      return response;
-    })
-    .finally(() => {
-      isAuthenticating.set(false);
-    });
+  return { available, tokenSaved, deviceId, type, accessGranted, accessRequested };
 }
 
 /**
  * @returns True if the biometry manager is supported.
  */
-export function isSupported(): boolean {
-  return supports(REQUEST_AUTH_METHOD, $version());
-}
+export const isSupported = createIsSupported(REQUEST_AUTH_METHOD);
+
+const [
+  mountFn,
+  tMountPromise,
+  tMountError,
+  tIsMounted,
+] = defineMountFn(
+  COMPONENT_NAME,
+  abortSignal => {
+    const s = isPageReload() && getStorageValue<StorageValue>(COMPONENT_NAME);
+    return s ? AbortablePromise.resolve(s) : requestBiometry({ abortSignal }).then(eventToState);
+  },
+  s => {
+    on(INFO_RECEIVED_EVENT, onBiometryInfoReceived);
+    setState(s);
+  },
+);
+
+const wrapSupported = createWrapSupported(COMPONENT_NAME, REQUEST_AUTH_METHOD);
+const wrapComplete = createWrapComplete(COMPONENT_NAME, tIsMounted[0], REQUEST_AUTH_METHOD);
+
+/**
+ * Mounts the Biometry component.
+ * @since Mini Apps v7.2
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @throws {FunctionNotAvailableError} The function is not supported
+ * @example
+ * if (mount.isAvailable()) {
+ *   await mount();
+ * }
+ */
+export const mount = wrapSupported('mount', mountFn);
+export const [, mountPromise, isMounting] = tMountPromise;
+export const [, mountError] = tMountError;
+export const [_isMounted, isMounted] = tIsMounted;
+
+const [
+  authFn,
+  tAuthPromise,
+  tAuthError,
+] = defineNonConcurrentFn(
+  (options?: AuthenticateOptions): AbortablePromise<{
+    /**
+     * Authentication status.
+     */
+    status: BiometryAuthRequestStatus;
+    /**
+     * Token from the local secure storage saved previously.
+     */
+    token?: string;
+  }> => {
+    return AbortablePromise.fn(async context => {
+      const s = _state();
+      if (!s.available) {
+        throwNotAvailable();
+      }
+      const data = await request(REQUEST_AUTH_METHOD, 'biometry_auth_requested', {
+        ...options,
+        ...context,
+        params: { reason: ((options || {}).reason || '').trim() },
+      });
+      const { token } = data;
+      if (typeof token === 'string') {
+        setState({ ...s, token });
+      }
+      return data;
+    }, options);
+  },
+  'Biometry authentication is already in progress',
+);
+
+/**
+ * Attempts to authenticate a user using biometrics and fetch a previously stored secure token.
+ * @param options - method options.
+ * @since Mini Apps v7.2
+ * @returns Token from the local secure storage saved previously or undefined.
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @throws {FunctionNotAvailableError} The function is not supported
+ * @throws {FunctionNotAvailableError} The parent component is not mounted
+ * @throws {ConcurrentCallError} Biometry authentication is already in progress
+ * @throws {NotAvailableError} Biometry is not available
+ * @example
+ * if (authenticate.isAvailable()) {
+ *   const { status, token } = await authenticate({
+ *     reason: 'Authenticate to open wallet',
+ *   });
+ * }
+ */
+export const authenticate = wrapComplete('authenticate', authFn);
+export const [, authPromise, isAuthenticating] = tAuthPromise;
+export const [, authError] = tAuthError;
 
 /**
  * Opens the biometric access settings for bots. Useful when you need to request biometrics
@@ -102,100 +169,107 @@ export function isSupported(): boolean {
  *
  * _Note that this method can be called only in response to user interaction with the Mini App
  * interface (e.g. a click inside the Mini App or on the main button)_.
- * @since 7.2
+ * @since Mini Apps v7.2
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @throws {FunctionNotAvailableError} The function is not supported
+ * @example
+ * if (openSettings.isAvailable()) {
+ *   openSettings();
+ * }
  */
-export function openSettings(): void {
-  postEvent(OPEN_SETTINGS_METHOD);
-}
+export const openSettings = wrapSupported('openSettings', (): void => {
+  postEvent('web_app_biometry_open_settings');
+});
+
+const [
+  requestAccessFn,
+  tRequestAccessPromise,
+  tRequestAccessError,
+] = defineNonConcurrentFn(
+  (options?: RequestAccessOptions): AbortablePromise<boolean> => {
+    return AbortablePromise.fn(async context => {
+      const data = await request('web_app_biometry_request_access', INFO_RECEIVED_EVENT, {
+        ...options,
+        ...context,
+        params: { reason: (options || {}).reason || '' },
+      }).then(eventToState);
+
+      if (!data.available) {
+        throwNotAvailable();
+      }
+      setState(data);
+
+      return data.accessGranted;
+    }, options);
+  },
+  'Biometry access request is already in progress',
+);
 
 /**
  * Requests permission to use biometrics.
- * @since 7.2
+ * @since Mini Apps v7.2
  * @returns Promise with true, if access was granted.
- * @throws {TypedError} ERR_ALREADY_CALLED
- * @throws {TypedError} ERR_NOT_AVAILABLE
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @throws {FunctionNotAvailableError} The function is not supported
+ * @throws {FunctionNotAvailableError} The parent component is not mounted
+ * @throws {ConcurrentCallError} Biometry access request is already in progress
+ * @throws {NotAvailableError} Biometry is not available
+ * @example
+ * if (requestAccess.isAvailable()) {
+ *   const accessGranted = await requestAccess({
+ *     reason: 'Authenticate to open wallet',
+ *   });
+ * }
  */
-export function requestAccess(options?: RequestAccessOptions): CancelablePromise<boolean> {
-  if (isRequestingAccess()) {
-    return CancelablePromise.reject(new TypedError(ERR_ALREADY_CALLED));
-  }
-  isRequestingAccess.set(true);
+export const requestAccess = wrapComplete('requestAccess', requestAccessFn);
+export const [, requestAccessPromise, isRequestingAccess] = tRequestAccessPromise;
+export const [, requestAccessError] = tRequestAccessError;
 
-  options ||= {};
-  return request(REQUEST_ACCESS_METHOD, BIOMETRY_INFO_RECEIVED_EVENT, {
-    ...options,
-    params: { reason: options.reason || '' },
-  })
-    .then(eventToState)
-    .then((info) => {
-      if (!info.available) {
-        throw new TypedError(ERR_NOT_AVAILABLE);
-      }
-      state.set(info);
-      return info.accessGranted;
-    })
-    .finally(() => {
-      isRequestingAccess.set(false);
-    });
-}
-
-/**
- * Mounts the component.
- * @throws {TypedError} ERR_ALREADY_CALLED
- */
-export const mount = createMountFn<State>(
-  (options) => {
-    // May be not supported.
-    if (!isSupported()) {
-      return { available: false };
-    }
-
-    // Try to restore the state using the storage.
-    const s = isPageReload() && getStorageValue<StorageValue>(STORAGE_KEY);
-    if (s) {
-      return s;
-    }
-
-    // We were unable to retrieve data locally. In this case, we are sending a request returning
-    // the biometry information.
-    return requestBiometry(options);
-  },
-  result => {
-    on(BIOMETRY_INFO_RECEIVED_EVENT, onBiometryInfoReceived);
-    state.sub(onStateChanged);
-    state.set(result);
-  },
-  { isMounted, mountError, isMounting },
-);
-
-const onBiometryInfoReceived: EventListener<'biometry_info_received'> = e => {
-  state.set(eventToState(e));
-};
-
-function onStateChanged(s: State | undefined): void {
-  s && setStorageValue<StorageValue>(STORAGE_KEY, s);
+function setState(s: State): void {
+  _state.set(s);
+  setStorageValue<StorageValue>(COMPONENT_NAME, s);
 }
 
 /**
  * Unmounts the component.
  */
-export function unmount(): void {
-  off(BIOMETRY_INFO_RECEIVED_EVENT, onBiometryInfoReceived);
-  state.unsub(onStateChanged);
+export function unmount() {
+  [authPromise, requestAccessPromise, mountPromise].forEach(signalCancel);
+  off(INFO_RECEIVED_EVENT, onBiometryInfoReceived);
+  _isMounted.set(false);
 }
 
 /**
  * Updates the biometric token in a secure storage on the device.
- * @since 7.2
+ * @since Mini Apps v7.2
  * @returns Promise with `true`, if token was updated.
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @throws {FunctionNotAvailableError} The function is not supported
+ * @throws {FunctionNotAvailableError} The parent component is not mounted
+ * @example Setting a new token
+ * if (updateToken.isAvailable()) {
+ *   updateToken({
+ *     token: 'abcdef',
+ *   })
+ * }
+ * @example Deleting the token
+ * if (updateToken.isAvailable()) {
+ *   updateToken();
+ * }
  */
-export function updateToken(options?: UpdateTokenOptions): CancelablePromise<BiometryTokenUpdateStatus> {
-  options ||= {};
-  return request(UPDATE_TOKEN_METHOD, 'biometry_token_updated', {
-    ...options,
-    params: {
-      token: options.token || '',
-      reason: options.reason,
-    },
-  }).then(r => r.status);
-}
+export const updateToken = wrapComplete(
+  'updateToken',
+  (options?: UpdateTokenOptions): AbortablePromise<BiometryTokenUpdateStatus> => {
+    options ||= {};
+    return request('web_app_biometry_update_token', 'biometry_token_updated', {
+      ...options,
+      params: {
+        token: options.token || '',
+        reason: options.reason,
+      },
+    }).then(r => r.status);
+  },
+);

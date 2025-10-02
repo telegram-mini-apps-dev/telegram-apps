@@ -1,7 +1,10 @@
 import { defineConfig } from 'vitepress';
 
-import { packagesNavItem, packagesSidebar } from './packages';
-import { platformNavItem, platformSidebar } from './platform';
+import { packagesLinksGenerator } from './packages';
+import { platformLinksGenerator } from './platform';
+
+const { packagesNavItem, packagesSidebar } = packagesLinksGenerator();
+const { platformNavItem, platformSidebar } = platformLinksGenerator();
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -12,13 +15,15 @@ export default defineConfig({
   // https://vitepress.dev/reference/site-config#base
   base: '/docs/',
 
+  ignoreDeadLinks: true,
+
   // Internationalization.
   // https://vitepress.dev/guide/i18n
   locales: {
     root: {
       label: 'English',
       lang: 'en',
-    },
+    }
   },
 
   // Show when each page content was last updated.

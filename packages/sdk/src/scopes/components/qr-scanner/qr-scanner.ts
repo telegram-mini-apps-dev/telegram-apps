@@ -1,18 +1,16 @@
-import {
-  CancelablePromise,
-  createCbCollector,
-  TypedError,
-  on,
-  EnhancedPromise,
-  supports,
-  type ExecuteWithOptions,
-} from '@telegram-apps/bridge';
-import { signal } from '@telegram-apps/signals';
+import { on } from '@telegram-apps/bridge';
+import { createCbCollector } from '@telegram-apps/toolkit';
+import { AbortablePromise, ManualPromise } from 'better-promises';
 
-import { $version, postEvent } from '@/scopes/globals.js';
-import { ERR_ALREADY_CALLED } from '@/errors.js';
+import { postEvent } from '@/globals.js';
+import { createWrapSupported } from '@/scopes/wrappers/createWrapSupported.js';
+import { defineNonConcurrentFn } from '@/scopes/defineNonConcurrentFn.js';
+import { createIsSupported } from '@/scopes/createIsSupported.js';
+import { signalCancel } from '@/scopes/signalCancel.js';
+import type { RequestOptionsNoCapture } from '@/types.js';
+import { ignoreCanceled } from '@/utils/ignoreCanceled.js';
 
-interface OpenSharedOptions extends ExecuteWithOptions {
+interface OpenSharedOptions extends RequestOptionsNoCapture {
   /**
    * Title to be displayed in the scanner.
    */
@@ -22,100 +20,138 @@ interface OpenSharedOptions extends ExecuteWithOptions {
 const CLOSE_METHOD = 'web_app_close_scan_qr_popup';
 const OPEN_METHOD = 'web_app_open_scan_qr_popup';
 const CLOSED_EVENT = 'scan_qr_popup_closed';
-const SCANNED_EVENT = 'qr_text_received';
+const TEXT_RECEIVED_EVENT = 'qr_text_received';
+
+const wrapSupported = createWrapSupported('qrScanner', OPEN_METHOD);
 
 /**
  * Closes the scanner.
+ * @since Mini Apps v6.4
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @throws {FunctionNotAvailableError} The function is not supported
+ * @example
+ * if (close.isAvailable()) {
+ *   close();
+ * }
  */
-export function close(): void {
-  isOpened.set(false);
+export const close = wrapSupported('close', (): void => {
   postEvent(CLOSE_METHOD);
-}
+  signalCancel(openPromise);
+});
 
 /**
- * True if the scanner is currently opened.
+ * Signal indicating if the QR Scanner is currently opened.
  */
-export const isOpened = signal(false);
-
-/**
- * @returns True if the QR scanner is supported.
- */
-export function isSupported(): boolean {
-  return supports(OPEN_METHOD, $version());
-}
+export const isSupported = createIsSupported(OPEN_METHOD);
 
 /**
  * Opens the scanner and returns a promise which will be resolved with the QR content if the
- * `capture` function returned true.
+ * passed `capture` function returned true.
  *
- * Promise may also be resolved to null if the scanner was closed.
+ * The `capture` option may be ommited. In this case, the first scanned QR will be returned.
+ *
+ * Promise may also be resolved to undefined if the scanner was closed.
  * @param options - method options.
- * @returns A promise with QR content presented as string or undefined if the scanner was closed.
- * @throws {TypedError} ERR_ALREADY_CALLED
+ * @returns A promise with QR content presented as string or undefined if the
+ * scanner was closed.
+ * @since Mini Apps v6.4
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @throws {FunctionNotAvailableError} The function is not supported
+ * @throws {ConcurrentCallError} The QR Scanner is already opened
+ * @example Without `capture` option
+ * if (captureOne.isAvailable()) {
+ *   const qr = await captureOne({ text: 'Scan any QR' });
+ * }
+ * @example Using `capture` option
+ * if (captureOne.isAvailable()) {
+ *   const qr = await captureOne({
+ *     text: 'Scan any QR',
+ *     capture(scannedQr) {
+ *       return scannedQr === 'any expected by me qr';
+ *     }
+ *   });
+ * }
  */
-export function open(options?: OpenSharedOptions & {
-  /**
-   * Function, which should return true if a scanned QR should be captured.
-   * @param qr - scanned QR content.
-   */
-  capture?: (qr: string) => boolean;
-}): CancelablePromise<string | undefined>;
+function _open(
+  options?: OpenSharedOptions & {
+    /**
+     * Function, which should return true if the scanned QR should be captured.
+     * @param qr - scanned QR content.
+     */
+    capture?: (qr: string) => boolean;
+  },
+): AbortablePromise<string | undefined>;
 
 /**
  * Opens the scanner and calls the `onCaptured` function each time, a QR was scanned.
  *
- * The method does not return anything and expects the scanner to be closed externally by a user
- * or via the `close` method.
+ * The function returns a promise which will be resolved when the QR scanner was closed. It expects
+ * the scanner to be closed externally by a user or via the `close` method.
  * @param options - method options.
- * @throws {TypedError} ERR_ALREADY_CALLED
+ * @since Mini Apps v6.4
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @throws {FunctionNotAvailableError} The function is not supported
+ * @throws {ConcurrentCallError} The QR Scanner is already opened
+ * @example
+ * if (captureMany.isAvailable()) {
+ *   const promise = await captureMany({
+ *     text: 'Scan any QR',
+ *     onCaptured(scannedQr) {
+ *       if (scannedQr === 'any expected by me qr') {
+ *         close();
+ *       }
+ *     }
+ *   });
+ *   console.log('The scanner was closed');
+ * }
  */
-export function open(options: OpenSharedOptions & {
-  /**
-   * Function which will be called if some QR code was scanned.
-   * @param qr - scanned QR content.
-   */
-  onCaptured: (qr: string) => void;
-}): CancelablePromise<void>;
+function _open(
+  options: OpenSharedOptions & {
+    /**
+     * Function which will be called if a QR code was scanned.
+     * @param qr - scanned QR content.
+     */
+    onCaptured: (qr: string) => void;
+  },
+): AbortablePromise<void>;
 
-export function open(options?: OpenSharedOptions & {
-  onCaptured?: (qr: string) => void;
-  capture?: (qr: string) => boolean;
-}): CancelablePromise<string | void> {
-  return CancelablePromise.withFn((abortSignal) => {
-    if (isOpened()) {
-      throw new TypedError(ERR_ALREADY_CALLED);
-    }
-    isOpened.set(true);
+function _open(
+  options?: OpenSharedOptions & {
+    onCaptured?: (qr: string) => void;
+    capture?: (qr: string) => boolean;
+  },
+): AbortablePromise<string | undefined | void> {
+  options ||= {};
+  const { onCaptured, text, capture } = options;
+  const [, cleanup] = createCbCollector(
+    on(CLOSED_EVENT, () => {
+      promise.resolve();
+    }),
+    on(TEXT_RECEIVED_EVENT, (event) => {
+      if (onCaptured) {
+        onCaptured(event.data);
+      } else if (!capture || capture(event.data)) {
+        promise.resolve(event.data);
+        postEvent(CLOSE_METHOD);
+      }
+    }),
+  );
 
-    options ||= {};
-    const { onCaptured, text, capture } = options;
-    const [, cleanup] = createCbCollector(
-      // Whenever the scanner was closed for some reason (by a developer or a user), we should
-      // resolve the promise with undefined.
-      isOpened.sub(() => {
-        promise.resolve();
-      }),
-      // Whenever user closed the scanner, update the isOpened signal state.
-      on(CLOSED_EVENT, () => {
-        isOpened.set(false);
-      }),
-      // Whenever some QR was scanned, we should check if it must be captured.
-      on(SCANNED_EVENT, (event) => {
-        if (onCaptured) {
-          onCaptured(event.data);
-        } else if (capture && capture(event.data)) {
-          promise.resolve(event.data);
-          close();
-        }
-      }),
-    );
+  const promise = new ManualPromise<string | void>(options);
+  (options.postEvent || postEvent)(OPEN_METHOD, { text });
 
-    const promise = new EnhancedPromise<string | void>({ abortSignal })
-      .catch(close)
-      .finally(cleanup);
-
-    (options.postEvent || postEvent)(OPEN_METHOD, { text });
-
-    return promise;
-  }, options);
+  return AbortablePromise.resolve(promise).catch(ignoreCanceled).finally(cleanup);
 }
+
+const [
+  openFn,
+  tOpenPromise,
+  tOpenError,
+] = defineNonConcurrentFn(_open, 'The QR Scanner is already opened');
+
+export const open = wrapSupported('open', openFn);
+export const [, openPromise, isOpened] = tOpenPromise;
+export const [, openError] = tOpenError;

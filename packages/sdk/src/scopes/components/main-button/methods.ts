@@ -1,104 +1,130 @@
 import {
   off,
   on,
-  getStorageValue,
-  setStorageValue,
   type EventListener,
 } from '@telegram-apps/bridge';
 import { isPageReload } from '@telegram-apps/navigation';
+import { getStorageValue, setStorageValue } from '@telegram-apps/toolkit';
 
-import { postEvent } from '@/scopes/globals.js';
-import {
-  mount as tpMount,
-  buttonColor as tpButtonColor,
-  buttonTextColor as tpButtonTextColor,
-} from '@/scopes/components/theme-params/instance.js';
+import { postEvent } from '@/globals.js';
+import { createWrapBasic } from '@/scopes/wrappers/createWrapBasic.js';
+import { createWrapMounted } from '@/scopes/wrappers/createWrapMounted.js';
+import { removeUndefined } from '@/utils/removeUndefined.js';
 
-import { state, isMounted } from './signals.js';
+import { internalState, isMounted, state, _isMounted } from './signals.js';
 import type { State } from './types.js';
 
 type StorageValue = State;
 
-const CLICK_EVENT = 'main_button_pressed';
-const STORAGE_KEY = 'mainButton';
+const SETUP_METHOD_NAME = 'web_app_setup_main_button';
+const CLICK_EVENT_NAME = 'main_button_pressed';
+const COMPONENT_NAME = 'mainButton';
+
+const wrapBasic = createWrapBasic(COMPONENT_NAME);
+const wrapMounted = createWrapMounted(COMPONENT_NAME, isMounted);
 
 /**
- * Adds a new main button click listener.
+ * Mounts the Main Button restoring its state.
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @example
+ * if (mount.isAvailable()) {
+ *   mount();
+ * }
+ */
+export const mount = wrapBasic('mount', (): void => {
+  if (!_isMounted()) {
+    const prev = isPageReload() && getStorageValue<StorageValue>(COMPONENT_NAME);
+    prev && internalState.set(prev);
+    _isMounted.set(true);
+  }
+});
+
+/**
+ * Adds a new Main Button click listener.
  * @param fn - event listener.
  * @returns A function to remove bound listener.
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @example
+ * if (onClick.isAvailable()) {
+ *   const off = onClick(() => {
+ *     console.log('User clicked the Main Button');
+ *     off();
+ *   });
+ * }
  */
-export function onClick(fn: EventListener<'main_button_pressed'>): VoidFunction {
-  return on(CLICK_EVENT, fn);
-}
+export const onClick = wrapBasic(
+  'onClick',
+  (fn: EventListener<'main_button_pressed'>): VoidFunction => {
+    return on(CLICK_EVENT_NAME, fn);
+  },
+);
 
 /**
- * Removes the main button click listener.
+ * Removes the Main Button click listener.
  * @param fn - an event listener.
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @example
+ * if (offClick.isAvailable()) {
+ *   function listener() {
+ *     console.log('User clicked the Main Button');
+ *     offClick(listener);
+ *   }
+ *   onClick(listener);
+ * }
  */
-export function offClick(fn: EventListener<'main_button_pressed'>): void {
-  off(CLICK_EVENT, fn);
-}
+export const offClick = wrapBasic(
+  'offClick',
+  (fn: EventListener<'main_button_pressed'>): void => {
+    off(CLICK_EVENT_NAME, fn);
+  },
+);
 
 /**
- * Mounts the component.
- *
- * This function restores the component state and is automatically saving it in the local storage
- * if it changed.
+ * Updates the Main Button state.
+ * @param updates - state changes to perform.
+ * @throws {FunctionNotAvailableError} The environment is unknown
+ * @throws {FunctionNotAvailableError} The SDK is not initialized
+ * @throws {FunctionNotAvailableError} The parent component is not mounted
+ * @example
+ * if (setParams.isAvailable()) {
+ *   setParams({
+ *     text: 'Submit',
+ *     isEnabled: true,
+ *     hasShineEffect: true,
+ *   });
+ * }
  */
-export function mount(): void {
-  if (!isMounted()) {
-    const prev = isPageReload() && getStorageValue<StorageValue>(STORAGE_KEY);
-    if (prev) {
-      state.set(prev);
-    } else {
-      tpMount();
-      setParams({
-        backgroundColor: tpButtonColor(),
-        textColor: tpButtonTextColor(),
-      });
-    }
+export const setParams = wrapMounted(
+  'setParams',
+  (updates: Partial<State>): void => {
+    internalState.set({ ...internalState(), ...removeUndefined(updates) });
+    setStorageValue<StorageValue>(COMPONENT_NAME, internalState());
 
-    state.sub(onStateChanged);
-    isMounted.set(true);
-  }
-}
-
-function onStateChanged(s: State): void {
-  // We should not commit changes until the payload is correct. Some version of Telegram will
-  // crash due to the empty value of the text.
-  if (s.text) {
-    postEvent('web_app_setup_main_button', {
-      is_visible: s.isVisible,
+    // We should not commit changes until the payload is correct.
+    // Some version of Telegram will crash due to the empty value of the text.
+    const s = state();
+    s.text && postEvent(SETUP_METHOD_NAME, {
+      color: s.backgroundColor,
+      has_shine_effect: s.hasShineEffect,
       is_active: s.isEnabled,
       is_progress_visible: s.isLoaderVisible,
+      is_visible: s.isVisible,
       text: s.text,
-      color: s.backgroundColor,
       text_color: s.textColor,
     });
-  }
-  setStorageValue<StorageValue>(STORAGE_KEY, s);
-}
+  },
+);
 
 /**
- * Updates the main button state.
- * @param updates - state changes to perform.
- */
-export function setParams(updates: Partial<State>): void {
-  state.set({
-    ...state(),
-    ...Object.fromEntries(
-      Object.entries(updates).filter(([, v]) => v !== undefined),
-    ),
-  });
-}
-
-/**
- * Unmounts the component, removing the listener, saving the component state in the local storage.
+ * Unmounts the Main Button.
  *
- * Note that this function does not remove listeners, added via the `onClick` function.
+ * Note that this function does not remove listeners added via the `onClick`
+ * function, so you have to remove them on your own.
  * @see onClick
  */
 export function unmount(): void {
-  state.unsub(onStateChanged);
-  isMounted.set(false);
+  _isMounted.set(false);
 }

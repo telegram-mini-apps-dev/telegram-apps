@@ -7,8 +7,18 @@ import { validate as _validate, type ValidateOptions, type ValidateValue } from 
 import { isValid as _isValid } from '../isValid.js';
 import type { CreateHmacFn, SignData, Text } from '../types.js';
 
+/**
+ * Converts Text to Node.js Buffer.
+ * @param text - text to convert
+ */
+function textToBuffer(text: Text): Buffer {
+  return Buffer.from(typeof text === 'string' ? text : new Uint8Array(text));
+}
+
 const createHmac: CreateHmacFn<false> = (data, key) => {
-  return nodeCreateHmac('sha256', key).update(data).digest();
+  return nodeCreateHmac('sha256', textToBuffer(key))
+    .update(textToBuffer(data))
+    .digest();
 };
 
 /**
@@ -16,7 +26,7 @@ const createHmac: CreateHmacFn<false> = (data, key) => {
  * @param token - token to hash.
  */
 export function hashToken(token: Text): Buffer {
-  return _hashToken(token, createHmac);
+  return Buffer.from(_hashToken(token, createHmac));
 }
 
 /**
@@ -58,9 +68,10 @@ export function signData(data: Text, key: Text, options?: SignDataOptions): stri
  * @param token - bot secret token.
  * @param options - additional validation options.
  * @throws {TypeError} "auth_date" should present integer
- * @throws {Error} "hash" is empty or not found
- * @throws {Error} "auth_date" is empty or not found
- * @throws {Error} Init data expired
+ * @throws {SignatureInvalidError} Signature is invalid.
+ * @throws {AuthDateInvalidError} "auth_date" property is missing or invalid.
+ * @throws {SignatureMissingError} "hash" property is missing.
+ * @throws {ExpiredError} Init data is expired.
  */
 export function validate(
   value: ValidateValue,

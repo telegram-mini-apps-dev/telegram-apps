@@ -1,6 +1,6 @@
 {
   "name": "@telegram-apps/navigation",
-  "version": "1.0.0",
+  "version": "1.0.14",
   "description": "Navigation functionality for Telegram Mini Apps.",
   "author": "Vladislav Kibenko <wolfram.deus@gmail.com>",
   "homepage": "https://github.com/Telegram-Mini-Apps/telegram-apps#readme",
@@ -21,9 +21,7 @@
   "type": "module",
   "sideEffects": false,
   "files": [
-    "dist",
-    "src",
-    "tsconfig.json"
+    "dist"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -42,11 +40,6 @@
     "lint:fix": "pnpm run lint --fix",
     "typecheck": "tsc --noEmit -p tsconfig.build.json",
     "build": "vite build -c vite.config.ts"
-  },
-  "dependencies": {
-    "@telegram-apps/bridge": "workspace:^",
-    "@telegram-apps/signals": "workspace:^",
-    "@telegram-apps/toolkit": "workspace:^"
   },
   "devDependencies": {
     "test-utils": "workspace:*",

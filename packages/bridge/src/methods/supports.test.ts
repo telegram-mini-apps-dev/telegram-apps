@@ -12,7 +12,7 @@ type HaveCheckSupportMethodObj = {
   [M in MethodNameWithVersionedParams]: {
     title: string;
     method: M;
-    parameter: MethodVersionedParams<M>
+    parameter: MethodVersionedParams<M>;
   }
 }[MethodNameWithVersionedParams];
 
@@ -53,9 +53,7 @@ describe.each<[
     'web_app_set_header_color',
     'web_app_trigger_haptic_feedback',
   ]],
-  ['6.2', [
-    'web_app_open_popup',
-  ]],
+  ['6.2', ['web_app_open_popup']],
   ['6.4', [
     'web_app_read_text_from_clipboard',
     'web_app_close_scan_qr_popup',
@@ -66,9 +64,7 @@ describe.each<[
       parameter: 'try_instant_view',
     },
   ]],
-  ['6.7', [
-    'web_app_switch_inline_query',
-  ]],
+  ['6.7', ['web_app_switch_inline_query']],
   ['6.9', [
     'web_app_invoke_custom_method',
     'web_app_request_write_access',
@@ -79,9 +75,7 @@ describe.each<[
       parameter: 'color',
     },
   ]],
-  ['6.10', [
-    'web_app_setup_settings_button',
-  ]],
+  ['6.10', ['web_app_setup_settings_button']],
   ['7.2', [
     'web_app_biometry_get_info',
     'web_app_biometry_open_settings',
@@ -101,17 +95,47 @@ describe.each<[
       parameter: 'return_back',
     },
   ]],
-  ['7.7', [
-    'web_app_setup_swipe_behavior',
-  ]],
+  ['7.7', ['web_app_setup_swipe_behavior']],
+  ['7.8', ['web_app_share_to_story']],
   ['7.10', [
     'web_app_setup_secondary_button',
+    'web_app_set_bottom_bar_color',
     {
       title: 'web_app_setup_main_button.has_shine_effect',
       method: 'web_app_setup_main_button',
       parameter: 'has_shine_effect',
     },
-  ]]
+  ]],
+  ['8.0', [
+    'web_app_request_fullscreen',
+    'web_app_exit_fullscreen',
+    'web_app_set_emoji_status',
+    'web_app_request_emoji_status_access',
+    'web_app_add_to_home_screen',
+    'web_app_check_home_screen',
+    'web_app_check_location',
+    'web_app_open_location_settings',
+    'web_app_request_file_download',
+    'web_app_request_location',
+    'web_app_send_prepared_message',
+    'web_app_start_accelerometer',
+    'web_app_start_device_orientation',
+    'web_app_start_gyroscope',
+    'web_app_stop_accelerometer',
+    'web_app_stop_device_orientation',
+    'web_app_stop_gyroscope',
+    'web_app_toggle_orientation_lock',
+  ]],
+  ['9.0', [
+    'web_app_device_storage_clear',
+    'web_app_device_storage_get_key',
+    'web_app_device_storage_save_key',
+    'web_app_secure_storage_clear',
+    'web_app_secure_storage_get_key',
+    'web_app_secure_storage_restore_key',
+    'web_app_secure_storage_save_key',
+  ]],
+  ['9.1', ['web_app_hide_keyboard']],
 ])('%s', (version, methods) => {
   const higher = increaseVersion(version, 1);
   const lower = increaseVersion(version, -1);
@@ -124,7 +148,7 @@ describe.each<[
     return typeof m === 'object';
   });
 
-  describe.each(methodsOnly)('%s', (method) => {
+  describe.each(methodsOnly)('%s', method => {
     it(`should return true if version >= ${version} (${higher})`, () => {
       expect(supports(method, version)).toBe(true);
       expect(supports(method, higher)).toBe(true);

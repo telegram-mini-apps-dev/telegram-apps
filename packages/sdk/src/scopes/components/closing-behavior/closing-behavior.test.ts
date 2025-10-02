@@ -1,90 +1,96 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mockSessionStorageGetItem, mockPageReload, mockSessionStorageSetItem } from 'test-utils';
-
-import { mockPostEvent } from '@test-utils/mockPostEvent.js';
-import { resetPackageState, resetSignal } from '@test-utils/reset.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  mockSessionStorageGetItem,
+  mockPageReload,
+  mockSessionStorageSetItem,
+} from 'test-utils';
 
 import {
-  disableConfirmation,
-  enableConfirmation,
+  mockPostEvent,
+  resetPackageState,
+  setMaxVersion,
+  mockMiniAppsEnv,
+} from '@test-utils/utils.js';
+import { testSafety } from '@test-utils/predefined/testSafety.js';
+
+import {
+  _isMounted,
+  isMounted,
   mount,
   unmount,
-  isMounted,
+  enableConfirmation,
+  _isConfirmationEnabled,
   isConfirmationEnabled,
+  disableConfirmation,
 } from './closing-behavior.js';
 
 beforeEach(() => {
   resetPackageState();
-  [isConfirmationEnabled, isMounted].forEach(resetSignal);
   vi.restoreAllMocks();
   mockPostEvent();
 });
 
-describe('mounted', () => {
-  beforeEach(mount);
-  afterEach(unmount);
+function setAvailable() {
+  setMaxVersion();
+  mockMiniAppsEnv();
+  _isMounted.set(true);
+}
 
-  describe('disableConfirmation', () => {
-    it('should call postEvent with "web_app_setup_closing_behavior" and { need_confirmation: false }', () => {
-      isConfirmationEnabled.set(true);
-      const spy = mockPostEvent();
-      disableConfirmation();
-      disableConfirmation();
-      disableConfirmation();
-      expect(spy).toBeCalledTimes(1);
-      expect(spy).toBeCalledWith('web_app_setup_closing_behavior', { need_confirmation: false });
-    });
-  });
-
-  describe('enableConfirmation', () => {
-    it('should call postEvent with "web_app_setup_closing_behavior" and { need_confirmation: true }', () => {
-      isConfirmationEnabled.set(false);
-      const spy = mockPostEvent();
-      enableConfirmation();
-      enableConfirmation();
-      enableConfirmation();
-      expect(spy).toBeCalledTimes(1);
-      expect(spy).toBeCalledWith('web_app_setup_closing_behavior', { need_confirmation: true });
-    });
+describe.each([
+  ['disableConfirmation', disableConfirmation, { isMounted: _isMounted }],
+  ['enableConfirmation', enableConfirmation, {}],
+  ['mount', mount, {}],
+] as const)('%s', (name, fn, options) => {
+  testSafety(fn, name, {
+    ...options,
+    component: 'closingBehavior',
   });
 });
 
+describe.each([
+  ['disableConfirmation', disableConfirmation, false],
+  ['enableConfirmation', enableConfirmation, true],
+])('%s', (_, fn, value) => {
+  beforeEach(setAvailable);
 
-describe('not mounted', () => {
-  describe('disableConfirmation', () => {
-    it('should not call postEvent', () => {
-      isConfirmationEnabled.set(true);
-      const spy = mockPostEvent();
-      disableConfirmation();
-      disableConfirmation();
-      disableConfirmation();
-      expect(spy).toBeCalledTimes(0);
-    });
+  it(`should set isConfirmationEnabled = ${value}`, () => {
+    _isConfirmationEnabled.set(!value);
+    expect(isConfirmationEnabled()).toBe(!value);
+    fn();
+    expect(isConfirmationEnabled()).toBe(value);
   });
 
-  describe('enableConfirmation', () => {
-    it('should not call postEvent', () => {
-      isConfirmationEnabled.set(false);
-      const spy = mockPostEvent();
-      enableConfirmation();
-      enableConfirmation();
-      enableConfirmation();
-      expect(spy).toBeCalledTimes(0);
-    });
+  it(`should call postEvent with "web_app_setup_closing_behavior" and { need_confirmation: ${value} }`, () => {
+    _isConfirmationEnabled.set(!value);
+    const spy = mockPostEvent();
+    fn();
+    fn();
+    expect(spy).toBeCalledTimes(1);
+    expect(spy).toBeCalledWith('web_app_setup_closing_behavior', { need_confirmation: value });
   });
-});
 
-describe('disableConfirmation', () => {
-  it('should set isConfirmationNeeded = false', () => {
-    isConfirmationEnabled.set(true);
-    expect(isConfirmationEnabled()).toBe(true);
-    disableConfirmation();
-    expect(isConfirmationEnabled()).toBe(false);
+  it(`should call sessionStorage.setItem with "tapps/closingBehavior" and "${value}" if value changed`, () => {
+    _isConfirmationEnabled.set(value);
+    const spy = mockSessionStorageSetItem();
+    fn();
+    // Should call retrieveLaunchParams.
+    expect(spy).toHaveBeenCalledOnce();
+
+    spy.mockClear();
+
+    _isConfirmationEnabled.set(!value);
+    fn();
+    // Should call retrieveLaunchParams + save component state.
+    expect(spy).toHaveBeenCalledTimes(2);
+    expect(spy).toHaveBeenNthCalledWith(2, 'tapps/closingBehavior', String(value));
   });
 });
 
 describe('mount', () => {
-  afterEach(unmount);
+  beforeEach(() => {
+    mockMiniAppsEnv();
+    setMaxVersion();
+  });
 
   it('should set isMounted = true', () => {
     expect(isMounted()).toBe(false);
@@ -97,27 +103,25 @@ describe('mount', () => {
       mockPageReload();
     });
 
-    it('should use value from session storage key "tapps/closingConfirmation"', () => {
-      const spy = vi.fn(() => 'true');
-      mockSessionStorageGetItem(spy);
+    it('should use value from session storage key "tapps/closingBehavior"', () => {
+      const spy = mockSessionStorageGetItem(() => 'true');
       mount();
       expect(spy).toHaveBeenCalledTimes(1);
-      expect(spy).toHaveBeenCalledWith('tapps/closingConfirmation');
+      expect(spy).toHaveBeenCalledWith('tapps/closingBehavior');
       expect(isConfirmationEnabled()).toBe(true);
     });
 
-    it('should set isConfirmationNeeded false if session storage key "tapps/closingConfirmation" not presented', () => {
-      const spy = vi.fn(() => null);
-      mockSessionStorageGetItem(spy);
+    it('should set isConfirmationEnabled false if session storage key "tapps/closingBehavior" not presented', () => {
+      const spy = mockSessionStorageGetItem(() => null);
       mount();
       expect(spy).toHaveBeenCalledTimes(1);
-      expect(spy).toHaveBeenCalledWith('tapps/closingConfirmation');
+      expect(spy).toHaveBeenCalledWith('tapps/closingBehavior');
       expect(isConfirmationEnabled()).toBe(false);
     });
   });
 
   describe('first launch', () => {
-    it('should set isConfirmationNeeded false', () => {
+    it('should set isConfirmationEnabled false', () => {
       mount();
       expect(isConfirmationEnabled()).toBe(false);
     });
@@ -125,31 +129,11 @@ describe('mount', () => {
 });
 
 describe('unmount', () => {
-  beforeEach(mount);
+  beforeEach(setAvailable);
 
-  it('should stop calling postEvent function and session storage updates when isConfirmationNeeded changes', () => {
-    const postEventSpy = mockPostEvent();
-    const storageSpy = mockSessionStorageSetItem();
-    isConfirmationEnabled.set(true);
-    expect(postEventSpy).toHaveBeenCalledTimes(1);
-    expect(storageSpy).toHaveBeenCalledTimes(1);
-
-    postEventSpy.mockClear();
-    storageSpy.mockClear();
-
+  it('should set isMounted = false', () => {
+    expect(isMounted()).toBe(true);
     unmount();
-    isConfirmationEnabled.set(false);
-
-    expect(postEventSpy).toHaveBeenCalledTimes(0);
-    expect(storageSpy).toHaveBeenCalledTimes(0);
-  });
-});
-
-describe('enableConfirmation', () => {
-  it('should set isConfirmationNeeded = true', () => {
-    isConfirmationEnabled.set(false);
-    expect(isConfirmationEnabled()).toBe(false);
-    enableConfirmation();
-    expect(isConfirmationEnabled()).toBe(true);
+    expect(isMounted()).toBe(false);
   });
 });
