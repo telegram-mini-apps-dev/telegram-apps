@@ -1,16 +1,16 @@
 {
   "name": "@telegram-apps/mate",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "description": "Your personal mate in Telegram Mini Apps development.",
   "author": "Vladislav Kibenko <wolfram.deus@gmail.com>",
-  "homepage": "https://github.com/Telegram-Mini-Apps/telegram-apps#readme",
+  "homepage": "https://github.com/telegram-mini-apps-dev/telegram-apps#readme",
   "repository": {
     "type": "git",
-    "url": "git@github.com:Telegram-Mini-Apps/telegram-apps.git",
+    "url": "git@github.com:telegram-mini-apps-dev/telegram-apps.git",
     "directory": "packages/mate"
   },
   "bugs": {
-    "url": "https://github.com/Telegram-Mini-Apps/telegram-apps/issues"
+    "url": "https://github.com/telegram-mini-apps-dev/telegram-apps/issues"
   },
   "keywords": [
     "telegram-mini-apps",
