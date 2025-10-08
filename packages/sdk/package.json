@@ -1,6 +1,6 @@
 {
   "name": "@telegram-apps/sdk",
-  "version": "3.11.7",
+  "version": "3.11.8",
   "description": "TypeScript Source Development Kit for Telegram Mini Apps client application.",
   "author": "Vladislav Kibenko <wolfram.deus@gmail.com>",
   "homepage": "https://github.com/telegram-mini-apps-dev/telegram-apps#readme",
